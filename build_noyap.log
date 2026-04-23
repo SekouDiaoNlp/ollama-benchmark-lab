@@ -1,55 +1,131 @@
-[2026-04-23 17:47:43] Models: 24
-[2026-04-23 17:47:43] Processing: ./modelfiles/Modelfile.base
-[2026-04-23 17:47:43] Processing: ./modelfiles/Modelfile.codegemma:2b.acting
-[2026-04-23 17:47:44] SKIP: base:noyap exists
-[2026-04-23 17:47:44] SKIP: codegemma:2b-acting-noyap exists
-[2026-04-23 17:47:44] Processing: ./modelfiles/Modelfile.codegemma:7b.acting
-[2026-04-23 17:47:44] Processing: ./modelfiles/Modelfile.codellama:7b
-[2026-04-23 17:47:44] SKIP: base model missing: codellama:7b
-[2026-04-23 17:47:44] Processing: ./modelfiles/Modelfile.codellama:7b-instruct
-[2026-04-23 17:47:44] Building: codegemma:7b-acting-tmp
-[2026-04-23 17:47:44] Building: codellama:7b-instruct-tmp
+[2026-04-23 18:05:43] Models: 24
+[2026-04-23 18:05:43] Processing: ./modelfiles/Modelfile.base
+[2026-04-23 18:05:43] Processing: ./modelfiles/Modelfile.codegemma:2b.acting
+[2026-04-23 18:05:43] SKIP: codegemma:2b-acting-noyap exists
+[2026-04-23 18:05:43] SKIP: base:noyap exists
+[2026-04-23 18:05:43] Processing: ./modelfiles/Modelfile.codegemma:7b.acting
+[2026-04-23 18:05:43] Processing: ./modelfiles/Modelfile.codellama:7b
+[2026-04-23 18:05:43] SKIP: base model missing: codellama:7b
+[2026-04-23 18:05:43] Processing: ./modelfiles/Modelfile.codellama:7b-instruct
+[2026-04-23 18:05:43] SKIP: codegemma:7b-acting-noyap exists
+[2026-04-23 18:05:43] Processing: ./modelfiles/Modelfile.codellama:7b-instruct.acting
+[2026-04-23 18:05:43] SKIP: codellama:7b-instruct-noyap exists
+[2026-04-23 18:05:43] Processing: ./modelfiles/Modelfile.deepseek-coder:1.3b
+[2026-04-23 18:05:44] SKIP: codellama:7b-instruct-acting-noyap exists
+[2026-04-23 18:05:44] SKIP: base model missing: deepseek-coder:1.3b
+[2026-04-23 18:05:44] Processing: ./modelfiles/Modelfile.deepseek-coder:6.7b
+[2026-04-23 18:05:44] Processing: ./modelfiles/Modelfile.mistral:7b-instruct
+[2026-04-23 18:05:44] SKIP: base model missing: deepseek-coder:6.7b
+[2026-04-23 18:05:44] Processing: ./modelfiles/Modelfile.phi3:medium
+[2026-04-23 18:05:44] SKIP: mistral:7b-instruct-noyap exists
+[2026-04-23 18:05:44] Processing: ./modelfiles/Modelfile.phi3:medium.planning
+[2026-04-23 18:05:44] SKIP: phi3:medium-noyap exists
+[2026-04-23 18:05:44] Processing: ./modelfiles/Modelfile.phi3:mini
+[2026-04-23 18:05:44] SKIP: phi3:medium-planning-noyap exists
+[2026-04-23 18:05:44] SKIP: base model missing: phi3:mini
+[2026-04-23 18:05:44] Processing: ./modelfiles/Modelfile.phi3:mini.planning
+[2026-04-23 18:05:44] Processing: ./modelfiles/Modelfile.qwen2.5:3b.planning
+[2026-04-23 18:05:44] SKIP: base model missing: phi3:mini
+[2026-04-23 18:05:44] Processing: ./modelfiles/Modelfile.qwen2.5:7b.planning
+[2026-04-23 18:05:44] SKIP: qwen2.5:3b-planning-noyap exists
+[2026-04-23 18:05:44] Processing: ./modelfiles/Modelfile.qwen2.5-coder:3b
+[2026-04-23 18:05:44] Building: qwen2.5:7b-planning-tmp
+[2026-04-23 18:05:44] Building: qwen2.5-coder:3b-tmp
 [?2026h[?25l[1Ggathering model components [K
-using existing layer sha256:3a43f93b78ec50f7c4e4dc8bd1cb3fff5a900e7d574c51a6f7495e48486e0dac [K
-using existing layer sha256:8c17c2ebb0ea011be9981cc3922db8ca8fa61e828c5d3f44cb6ae342bf80460b [K
-using existing layer sha256:590d74a5569b8a20eb2a8b0aa869d1d1d3faf6a7fdda1955ae827073c7f502fc [K
-using existing layer sha256:2e0493f67d0c8c9c68a8aeacdf6a38a2151cb3c4c1d42accf296e19810527988 [K
-creating new layer sha256:32faa5d863ed422d4ff0112f34aff7aa4a00114a1dd04e30591a4378b91d6704 [K
-creating new layer sha256:58b23a09d10925081086f444ca7b9b664710479372b80b12f1c25d9c87edda59 [K
+using existing layer sha256:2bada8a7450677000f678be90653b85d364de7db25eb5ea54136ada5f3933730 [K
+using existing layer sha256:eb4402837c7829a690fa845de4d7f3fd842c2adee476d5341da8a46ea9255175 [K
+using existing layer sha256:832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e [K
+using existing layer sha256:5593aa2b51ed45498203ddb2657469e4d4dde04aad3d00c0f23d8451a48299c5 [K
+using existing layer sha256:dd351d1403a9844735d5e37c4f685a7950c3afb36fe7945eefff278abef863d0 [K
 writing manifest [K
 success [K[?25h[?2026l
 [?2026h[?25l[1Ggathering model components [K
-using existing layer sha256:392f2ba7a9bea371a2e27b547cbed87eb3964ac722b26d847b66fa90e5b8c49e [K
-using existing layer sha256:097a36493f718248845233af1d3fefe7a303f864fae13bc31a3a9704229378ca [K
-using existing layer sha256:109037bec39c0becc8221222ae23557559bc594290945a2c4221ab4f303b8871 [K
-creating new layer sha256:bc29094d15c5bd500bee67253f85e3e86595a809290473235e1f07ab5246ef66 [K
-creating new layer sha256:b76109bdb5a30110383dccaf479db988cb157ae1394772b8d4a343d8430bf7ad [K
+using existing layer sha256:4a188102020e9c9530b687fd6400f775c45e90a0d7baafe65bd0a36963fbb7ba [K
+using existing layer sha256:1e65450c30670713aa47fe23e8b9662bdf4065e81cc8e3cbfaa98924fcc0d320 [K
+using existing layer sha256:45fc3ea7579acf3021044fc8c4c5dd5969ebc3ca2a68219b5075662cc949a4f1 [K
+using existing layer sha256:c839903656a0e9d75f40d97138dcb72aaa3ea25116a8617f513be8004d243290 [K
+using existing layer sha256:c174c0528d5fc2a407c3a759b9707f06ca1bf5b2292549809d78c6b4714c6fda [K
 writing manifest [K
 success [K[?25h[?2026l
-[2026-04-23 17:50:13] CREATED: codellama:7b-instruct-noyap
-[2026-04-23 17:50:13] Processing: ./modelfiles/Modelfile.codellama:7b-instruct.acting
-[2026-04-23 17:50:13] Building: codellama:7b-instruct-acting-tmp
+[2026-04-23 18:06:48] CREATED: qwen2.5-coder:3b-noyap
+[2026-04-23 18:06:48] Processing: ./modelfiles/Modelfile.qwen2.5-coder:3b.acting
+[2026-04-23 18:06:48] Building: qwen2.5-coder:3b-acting-tmp
 [?2026h[?25l[1Ggathering model components [K
-using existing layer sha256:3a43f93b78ec50f7c4e4dc8bd1cb3fff5a900e7d574c51a6f7495e48486e0dac [K
-using existing layer sha256:8c17c2ebb0ea011be9981cc3922db8ca8fa61e828c5d3f44cb6ae342bf80460b [K
-using existing layer sha256:590d74a5569b8a20eb2a8b0aa869d1d1d3faf6a7fdda1955ae827073c7f502fc [K
-using existing layer sha256:2e0493f67d0c8c9c68a8aeacdf6a38a2151cb3c4c1d42accf296e19810527988 [K
-creating new layer sha256:373566a00ae30adce4413f96f3f277dc61c3508496f8de498c94ef36d1cbed14 [K
-creating new layer sha256:482ea49c70f6a1b6d45a3f10dd1da2597a4d655b99a5d5110059f596ea1e0b34 [K
+using existing layer sha256:4a188102020e9c9530b687fd6400f775c45e90a0d7baafe65bd0a36963fbb7ba [K
+using existing layer sha256:1e65450c30670713aa47fe23e8b9662bdf4065e81cc8e3cbfaa98924fcc0d320 [K
+using existing layer sha256:45fc3ea7579acf3021044fc8c4c5dd5969ebc3ca2a68219b5075662cc949a4f1 [K
+creating new layer sha256:1157d2d9f10986b364b823a7b44d1483a58d996a3679864e54ea62a0d42b27ad [K
+creating new layer sha256:12d950736b92b1d895f1389271defa0110fe7f769aebff27a17ff7fbd9d48e4a [K
 writing manifest [K
 success [K[?25h[?2026l
-[2026-04-23 17:52:11] CREATED: codegemma:7b-acting-noyap
-[2026-04-23 17:52:11] Processing: ./modelfiles/Modelfile.deepseek-coder:1.3b
-[2026-04-23 17:52:11] SKIP: base model missing: deepseek-coder:1.3b
-[2026-04-23 17:52:11] Processing: ./modelfiles/Modelfile.deepseek-coder:6.7b
-[2026-04-23 17:52:11] SKIP: base model missing: deepseek-coder:6.7b
-[2026-04-23 17:52:11] Processing: ./modelfiles/Modelfile.mistral:7b-instruct
-[2026-04-23 17:52:11] Building: mistral:7b-instruct-tmp
+[2026-04-23 18:07:11] CREATED: qwen2.5:7b-planning-noyap
+[2026-04-23 18:07:11] Processing: ./modelfiles/Modelfile.qwen2.5-coder:7b
+[2026-04-23 18:07:11] Building: qwen2.5-coder:7b-tmp
 [?2026h[?25l[1Ggathering model components [K
-using existing layer sha256:f5074b1221da0f5a2910d33b642efa5b9eb58cfdddca1c79e16d7ad28aa2b31f [K
-using existing layer sha256:43070e2d4e532684de521b885f385d0841030efa2b1a20bafb76133a5e1379c1 [K
-using existing layer sha256:1ff5b64b61b9a63146475a24f70d3ca2fd6fdeec44247987163479968896fc0b [K
-creating new layer sha256:952a7fec9d0eb51d0d6c9b8479a4ee0bcf406a2a3e30da778df264b39545de62 [K
-creating new layer sha256:0e8459944ea87591f1acd6d678ddbe37376e8115b5ff9341486d87eeff6d8b49 [K
+using existing layer sha256:60e05f2100071479f596b964f89f510f057ce397ea22f2833a0cfe029bfc2463 [K
+using existing layer sha256:1e65450c30670713aa47fe23e8b9662bdf4065e81cc8e3cbfaa98924fcc0d320 [K
+using existing layer sha256:832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e [K
+creating new layer sha256:30535e802eecc576f7ddd295021209f813a2fc8de52de525bf8ef3c234ce429c [K
+creating new layer sha256:b8a524a8a41fc04cca9d86b688870397ca9b67904e5a79a8ab7a617b5bb0923c [K
 writing manifest [K
 success [K[?25h[?2026l
+[2026-04-23 18:07:31] CREATED: qwen2.5-coder:3b-acting-noyap
+[2026-04-23 18:07:31] Processing: ./modelfiles/Modelfile.qwen2.5-coder:7b.acting
+[2026-04-23 18:07:32] Building: qwen2.5-coder:7b-acting-tmp
+[?2026h[?25l[1Ggathering model components [K
+using existing layer sha256:60e05f2100071479f596b964f89f510f057ce397ea22f2833a0cfe029bfc2463 [K
+using existing layer sha256:1e65450c30670713aa47fe23e8b9662bdf4065e81cc8e3cbfaa98924fcc0d320 [K
+using existing layer sha256:832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e [K
+creating new layer sha256:344f4484de1795978022d102bc0d5d625f2f0261197110f1e54dda40b5fb773f [K
+creating new layer sha256:55d5b1badcedd87d45c9adb9cb7fd0c413def68a9bf2aa5b1612e020ba501b4a [K
+writing manifest [K
+success [K[?25h[?2026l
+[2026-04-23 18:08:28] CREATED: qwen2.5-coder:7b-noyap
+[2026-04-23 18:08:28] Processing: ./modelfiles/Modelfile.qwen3.5:9b
+[2026-04-23 18:08:28] SKIP: base model missing: qwen3.5:9b
+[2026-04-23 18:08:28] Processing: ./modelfiles/Modelfile.starcoder2:3b
+[2026-04-23 18:08:28] Building: starcoder2:3b-tmp
+[?2026h[?25l[1Ggathering model components [K
+using existing layer sha256:28bfdfaeba9f51611c00ed322ba684ce6db076756dbc46643f98a8a748c5199e [K
+using existing layer sha256:4ec42cd966c9d5cf067cc4438869e0737679203b4d6fc551c226c15a1c2d7997 [K
+using existing layer sha256:3b190e68fefe043e95b25825d7ebb8d2d61b154678765a2ab0d4a3a7a5b9733e [K
+creating new layer sha256:c6912cfe829646e7427bf638e70357b39f4a533006a79a3eba504bf2b5ae07c5 [K
+creating new layer sha256:84ef0e947a60a80961a93baa1721c3a0120740c567e4b56d4eb9442002611aa0 [K
+writing manifest [K
+success [K[?25h[?2026l
+[2026-04-23 18:08:38] CREATED: starcoder2:3b-noyap
+[2026-04-23 18:08:38] Processing: ./modelfiles/Modelfile.starcoder2:3b.acting
+[2026-04-23 18:08:39] Building: starcoder2:3b-acting-tmp
+[?2026h[?25l[1Ggathering model components [K
+using existing layer sha256:28bfdfaeba9f51611c00ed322ba684ce6db076756dbc46643f98a8a748c5199e [K
+using existing layer sha256:4ec42cd966c9d5cf067cc4438869e0737679203b4d6fc551c226c15a1c2d7997 [K
+using existing layer sha256:3b190e68fefe043e95b25825d7ebb8d2d61b154678765a2ab0d4a3a7a5b9733e [K
+creating new layer sha256:194434c086b06a8e4af27e36a3af665a8df7badca28a73eedf16ad371f2d6e3c [K
+creating new layer sha256:6b16f095df3ceb580f44744bcefb3b7c9601fbf11f88d66f93666d20a02eb13d [K
+writing manifest [K
+success [K[?25h[?2026l
+[2026-04-23 18:08:47] CREATED: starcoder2:3b-acting-noyap
+[2026-04-23 18:08:47] Processing: ./modelfiles/Modelfile.starcoder2:7b
+[2026-04-23 18:08:47] Building: starcoder2:7b-tmp
+[?2026h[?25l[1Ggathering model components [K
+using existing layer sha256:cf866ccad4e444eb559c9389867d3b67cf1dc93d79e9cc976049367ce3519adb [K
+using existing layer sha256:4ec42cd966c9d5cf067cc4438869e0737679203b4d6fc551c226c15a1c2d7997 [K
+using existing layer sha256:3b190e68fefe043e95b25825d7ebb8d2d61b154678765a2ab0d4a3a7a5b9733e [K
+creating new layer sha256:34f601d4dc0a637925ed8d1ea12d93c620033120d0f02fa0088f8ffbc713a8a2 [K
+creating new layer sha256:393f93e56c67d37f4f3b16928c4938eddbb93d1b3c0ab768c8b71a3d3203e901 [K
+writing manifest [K
+success [K[?25h[?2026l
+[2026-04-23 18:08:59] CREATED: starcoder2:7b-noyap
+[2026-04-23 18:08:59] Processing: ./modelfiles/Modelfile.starcoder2:7b.acting
+[2026-04-23 18:08:59] Building: starcoder2:7b-acting-tmp
+[?2026h[?25l[1Ggathering model components [K
+using existing layer sha256:cf866ccad4e444eb559c9389867d3b67cf1dc93d79e9cc976049367ce3519adb [K
+using existing layer sha256:4ec42cd966c9d5cf067cc4438869e0737679203b4d6fc551c226c15a1c2d7997 [K
+using existing layer sha256:3b190e68fefe043e95b25825d7ebb8d2d61b154678765a2ab0d4a3a7a5b9733e [K
+creating new layer sha256:11f8985e11b1a6a886754cd9ab3f768d0f01f00cc3a47dd66a2fe1b4bad20b87 [K
+creating new layer sha256:112fb57a4698b93ff2863afa4ef59b66e9077a227d6e6569a192b711466031e9 [K
+writing manifest [K
+success [K[?25h[?2026l
+[2026-04-23 18:09:10] CREATED: starcoder2:7b-acting-noyap
+[2026-04-23 18:09:30] CREATED: qwen2.5-coder:7b-acting-noyap
+[2026-04-23 18:09:30] DONE
