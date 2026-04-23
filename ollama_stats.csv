@@ -242,3 +242,7 @@ qwen2.5-coder:3b,general,PLAN,67,15493
 qwen2.5-coder:3b,general,PLAN,96,19824
 qwen2.5-coder:3b,general,PLAN,95,20411
 qwen2.5-coder:3b,general,PLAN,53,12445
+qwen2.5-coder:3b,general,PLAN,73,15509
+qwen2.5-coder:3b,general,ACT,46,10813
+qwen2.5-coder:3b,general,ACT,46,10749
+qwen2.5-coder:3b,general,ACT,61,14320
