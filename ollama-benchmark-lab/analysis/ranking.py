@@ -1,13 +1,8 @@
-import numpy as np
+import pandas as pd
 
 
-def rank_stability(scores):
-    ranks = []
+def rank_models(csv_path: str):
 
-    for _ in range(500):
-        sampled = {m: np.mean(np.random.choice(v, len(v), True))
-                   for m, v in scores.items()}
+    df = pd.read_csv(csv_path)
 
-        ranks.append(sorted(sampled, key=sampled.get, reverse=True))
-
-    return ranks
+    return df.groupby("model")["score"].mean().sort_values(ascending=False)

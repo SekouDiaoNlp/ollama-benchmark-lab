@@ -1,18 +1,26 @@
 [tool.poetry]
 name = "ollama-benchmark-lab"
 version = "0.1.0"
-description = "Research-grade SWE-bench style local LLM evaluation system"
+description = "Local LLM benchmarking framework for Ollama models (PLAN/ACT/SWE-style evaluation)"
+authors = ["sek <sek@local>"]
+
+# 🚨 KEY FIX: disable package mode behavior
+package-mode = false
 
 [tool.poetry.dependencies]
-python = "^3.11"
-pydantic = "^2.7"
-rich = "^13.7"
-tqdm = "^4.66"
-numpy = "^2.0"
-fastapi = "^0.110"
-uvicorn = "^0.30"
-psutil = "^5.9"
+python = ">=3.10,<3.13"
+numpy = "^2.0.0"
+pandas = "^2.2.0"
+tqdm = "^4.66.0"
+pyyaml = "^6.0.0"
+requests = "^2.31.0"
+pydantic = "^2.8.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+ruff = "^0.6.0"
+mypy = "^1.10.0"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=1.8.0"]
 build-backend = "poetry.core.masonry.api"

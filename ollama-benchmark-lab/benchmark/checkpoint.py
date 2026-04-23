@@ -1,22 +1,26 @@
 import json
 from pathlib import Path
 
-STATE_FILE = Path("results/state.jsonl")
 
+class CheckpointManager:
 
-def write_state(obj: dict):
-    STATE_FILE.parent.mkdir(exist_ok=True)
-    with open(STATE_FILE, "a") as f:
-        f.write(json.dumps(obj) + "\n")
+    def __init__(self, path: Path):
+        self.path = path
+        self.state = {}
 
+        if path.exists():
+            self._load()
 
-def load_done():
-    if not STATE_FILE.exists():
-        return set()
+    def _load(self):
+        for line in self.path.read_text().splitlines():
+            obj = json.loads(line)
+            self.state[obj["key"]] = obj["value"]
 
-    done = set()
-    for line in STATE_FILE.read_text().splitlines():
-        r = json.loads(line)
-        if r.get("status") == "done":
-            done.add((r["model"], r["task_id"]))
-    return done
+    def save(self, key: str, value: dict):
+        self.state[key] = value
+
+        with self.path.open("a") as f:
+            f.write(json.dumps({"key": key, "value": value}) + "\n")
+
+    def done(self, key: str) -> bool:
+        return key in self.state

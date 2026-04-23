@@ -1,2 +1,6 @@
-# optional helper placeholder for future UI
-print("Run: uvicorn dashboard.server:app --reload")
+"""
+Future:
+- real-time leaderboard
+- PLAN vs ACT radar charts
+- latency/correctness frontier visualization
+"""

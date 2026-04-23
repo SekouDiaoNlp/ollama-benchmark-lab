@@ -1,19 +1,18 @@
 import subprocess
-import time
 
 
-def run_ollama(model: str, prompt: str, timeout: int = 180):
-    start = time.time()
+class OllamaClient:
 
-    try:
-        p = subprocess.run(
+    def run(self, model: str, prompt: str) -> str:
+
+        p = subprocess.Popen(
             ["ollama", "run", model],
-            input=prompt.encode(),
+            stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            timeout=timeout,
+            stderr=subprocess.PIPE,
+            text=True
         )
-        return p.stdout.decode(), time.time() - start
 
-    except subprocess.TimeoutExpired:
-        return "", -1
+        out, err = p.communicate(prompt)
+
+        return out + ("\n" + err if err else "")

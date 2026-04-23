@@ -1,12 +1,12 @@
 import numpy as np
 
 
-def bootstrap_ci(values, n=1000):
-    values = np.array(values)
+def bootstrap_ci(data, n=1000):
 
     means = []
-    for _ in range(n):
-        sample = np.random.choice(values, len(values), True)
-        means.append(sample.mean())
 
-    return float(np.mean(values)), float(np.percentile(means, 2.5)), float(np.percentile(means, 97.5))
+    for _ in range(n):
+        sample = np.random.choice(data, size=len(data), replace=True)
+        means.append(np.mean(sample))
+
+    return np.percentile(means, [2.5, 97.5])

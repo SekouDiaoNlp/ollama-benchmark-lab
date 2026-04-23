@@ -1,17 +1,22 @@
 import time
-import os
-
-HB = "results/heartbeat.txt"
+from pathlib import Path
 
 
-def heartbeat():
-    with open(HB, "w") as f:
-        f.write(str(time.time()))
+class Watchdog:
 
+    def __init__(self, heartbeat_file: Path, timeout_s: int = 300):
+        self.file = heartbeat_file
+        self.timeout = timeout_s
 
-def stale(threshold=300):
-    if not os.path.exists(HB):
-        return True
+    def is_hung(self) -> bool:
 
-    last = float(open(HB).read())
-    return (time.time() - last) > threshold
+        if not self.file.exists():
+            return True
+
+        data = self.file.read_text().strip()
+        if not data:
+            return True
+
+        last = float(data.split("timestamp")[-1].split(":")[1].split(",")[0])
+
+        return (time.time() - last) > self.timeout
