@@ -1,0 +1,11 @@
+FROM codegemma:2b
+
+PARAMETER temperature 0.2
+PARAMETER top_p 0.92
+PARAMETER repeat_penalty 1.2
+PARAMETER num_ctx 2048
+PARAMETER num_predict 256
+
+SYSTEM """
+(IMPORT BASE SYSTEM PROMPT LOCATED @system/prompts/no-yap.txt EXACTLY)
+"""

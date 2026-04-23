@@ -1,0 +1,4 @@
+Explain the architecture of a Python CLI tool in 5 bullets
+Write a 200-line Python CLI tool with argparse, logging, and modular structure.
+Write a Python function that reverses a linked list
+time ollama run qwen3.5:9b "Write a 200-line Python CLI tool with argparse, logging, and modular structure"

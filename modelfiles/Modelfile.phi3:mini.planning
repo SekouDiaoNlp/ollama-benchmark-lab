@@ -1,0 +1,11 @@
+FROM phi3:mini
+
+PARAMETER temperature 0.35
+PARAMETER top_p 0.92
+PARAMETER repeat_penalty 1.2
+PARAMETER num_ctx 3072
+PARAMETER num_predict 192
+
+SYSTEM """
+(IMPORT BASE SYSTEM PROMPT LOCATED @system/prompts/no-yap.txt EXACTLY)
+"""

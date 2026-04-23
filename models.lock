@@ -1,0 +1,2 @@
+# Result of running: xargs -a models.lock -I {} ollama pull {}
+

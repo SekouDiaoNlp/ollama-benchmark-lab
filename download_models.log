@@ -1,0 +1,78 @@
+[2026-04-23 00:26:20] === MODEL DOWNLOAD START ===
+[2026-04-23 00:26:20] SKIP: phi3:medium already installed
+[2026-04-23 00:26:20] SKIP: qwen2.5:7b already installed
+[2026-04-23 00:26:20] SKIP: mistral:7b-instruct already installed
+[2026-04-23 00:26:20] SKIP: codellama:7b-instruct already installed
+[2026-04-23 00:26:20] Pulling qwen2.5-coder:7b (attempt 1)...
+[2026-04-23 00:39:58] FAILED: qwen2.5-coder:7b (attempt 1)
+[2026-04-23 00:40:03] Pulling qwen2.5-coder:7b (attempt 2)...
+[2026-04-23 01:04:02] SUCCESS: qwen2.5-coder:7b pulled
+[2026-04-23 01:04:02] VERIFIED: qwen2.5-coder:7b installed
+[2026-04-23 01:04:02] Pulling starcoder2:7b (attempt 1)...
+[2026-04-23 01:17:23] FAILED: starcoder2:7b (attempt 1)
+[2026-04-23 01:17:28] Pulling starcoder2:7b (attempt 2)...
+[2026-04-23 01:22:17] FAILED: starcoder2:7b (attempt 2)
+[2026-04-23 01:22:22] Pulling starcoder2:7b (attempt 3)...
+[2026-04-23 01:40:07] SUCCESS: starcoder2:7b pulled
+[2026-04-23 01:40:07] VERIFIED: starcoder2:7b installed
+[2026-04-23 01:40:07] SKIP: codegemma:7b already installed
+[2026-04-23 01:40:07] Pulling granite-code:8b (attempt 1)...
+[2026-04-23 04:33:01] FAILED: granite-code:8b (attempt 1)
+[2026-04-23 04:33:06] Pulling granite-code:8b (attempt 2)...
+[2026-04-23 04:33:06] FAILED: granite-code:8b (attempt 2)
+[2026-04-23 04:33:11] Pulling granite-code:8b (attempt 3)...
+[2026-04-23 04:33:11] FAILED: granite-code:8b (attempt 3)
+[2026-04-23 04:33:16] ERROR: granite-code:8b failed after 3 attempts
+[2026-04-23 04:33:16] SKIP: qwen2.5:3b already installed
+[2026-04-23 04:33:16] SKIP: qwen2.5-coder:3b already installed
+[2026-04-23 04:33:16] Pulling starcoder2:3b (attempt 1)...
+[2026-04-23 04:33:16] FAILED: starcoder2:3b (attempt 1)
+[2026-04-23 04:33:21] Pulling starcoder2:3b (attempt 2)...
+[2026-04-23 04:33:21] FAILED: starcoder2:3b (attempt 2)
+[2026-04-23 04:33:26] Pulling starcoder2:3b (attempt 3)...
+[2026-04-23 04:40:42] SUCCESS: starcoder2:3b pulled
+[2026-04-23 04:40:42] VERIFIED: starcoder2:3b installed
+[2026-04-23 04:40:42] SKIP: codegemma:2b already installed
+[2026-04-23 04:40:42] SKIP: granite-code:3b already installed
+[2026-04-23 04:40:42] === DOWNLOAD COMPLETE ===
+[2026-04-23 04:47:22] === MODEL DOWNLOAD START ===
+[2026-04-23 04:47:22] SKIP: phi3:medium already installed
+[2026-04-23 04:47:22] SKIP: qwen2.5:7b already installed
+[2026-04-23 04:47:22] SKIP: mistral:7b-instruct already installed
+[2026-04-23 04:47:22] SKIP: codellama:7b-instruct already installed
+[2026-04-23 04:47:22] SKIP: qwen2.5-coder:7b already installed
+[2026-04-23 04:47:22] SKIP: starcoder2:7b already installed
+[2026-04-23 04:47:23] SKIP: codegemma:7b already installed
+[2026-04-23 04:47:23] Pulling granite-code:8b (attempt 1)...
+[2026-04-23 07:13:56] === MODEL DOWNLOAD START ===
+[2026-04-23 07:13:56] SKIP: phi3:medium already installed
+[2026-04-23 07:13:56] SKIP: qwen2.5:7b already installed
+[2026-04-23 07:13:56] SKIP: mistral:7b-instruct already installed
+[2026-04-23 07:13:57] SKIP: codellama:7b-instruct already installed
+[2026-04-23 07:13:57] SKIP: qwen2.5-coder:7b already installed
+[2026-04-23 07:13:57] SKIP: starcoder2:7b already installed
+[2026-04-23 07:13:57] SKIP: codegemma:7b already installed
+[2026-04-23 07:13:57] Pulling granite-code:8b (attempt 1)...
+[2026-04-23 07:16:30] SUCCESS: granite-code:8b pulled
+[2026-04-23 07:16:30] VERIFIED: granite-code:8b installed
+[2026-04-23 07:16:30] SKIP: qwen2.5:3b already installed
+[2026-04-23 07:16:30] SKIP: qwen2.5-coder:3b already installed
+[2026-04-23 07:16:30] SKIP: starcoder2:3b already installed
+[2026-04-23 07:16:30] SKIP: codegemma:2b already installed
+[2026-04-23 07:16:30] SKIP: granite-code:3b already installed
+[2026-04-23 07:16:30] === DOWNLOAD COMPLETE ===
+[2026-04-23 07:18:50] === MODEL DOWNLOAD START ===
+[2026-04-23 07:18:50] SKIP: phi3:medium already installed
+[2026-04-23 07:18:50] SKIP: qwen2.5:7b already installed
+[2026-04-23 07:18:50] SKIP: mistral:7b-instruct already installed
+[2026-04-23 07:18:50] SKIP: codellama:7b-instruct already installed
+[2026-04-23 07:18:50] SKIP: qwen2.5-coder:7b already installed
+[2026-04-23 07:18:50] SKIP: starcoder2:7b already installed
+[2026-04-23 07:18:51] SKIP: codegemma:7b already installed
+[2026-04-23 07:18:51] SKIP: granite-code:8b already installed
+[2026-04-23 07:18:51] SKIP: qwen2.5:3b already installed
+[2026-04-23 07:18:51] SKIP: qwen2.5-coder:3b already installed
+[2026-04-23 07:18:51] SKIP: starcoder2:3b already installed
+[2026-04-23 07:18:51] SKIP: codegemma:2b already installed
+[2026-04-23 07:18:51] SKIP: granite-code:3b already installed
+[2026-04-23 07:18:51] === DOWNLOAD COMPLETE ===

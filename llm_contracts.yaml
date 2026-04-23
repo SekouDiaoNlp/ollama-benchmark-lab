@@ -1,0 +1,20 @@
+plan:
+  models:
+    - qwen2.5:3b
+    - phi3:medium
+    - mistral:7b-instruct
+  strict: true
+  max_tokens: 300
+
+act:
+  models:
+    - qwen2.5-coder:7b
+    - codellama:7b-instruct
+    - codegemma:7b
+  strict: true
+  max_tokens: 800
+
+fast_act:
+  models:
+    - qwen2.5-coder:3b
+    - starcoder2:3b

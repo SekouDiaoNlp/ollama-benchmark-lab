@@ -1,0 +1,11 @@
+FROM mistral:7b-instruct
+
+PARAMETER temperature 0.2
+PARAMETER top_p 0.85
+PARAMETER repeat_penalty 1.15
+PARAMETER num_ctx 8192
+PARAMETER num_predict 256
+
+SYSTEM """
+(IMPORT BASE SYSTEM PROMPT LOCATED @system/prompts/no-yap.txt EXACTLY)
+"""

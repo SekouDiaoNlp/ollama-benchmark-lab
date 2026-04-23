@@ -1,0 +1,73 @@
+```
+# =========================
+# OLLAMA - GLOBAL IGNORE
+# =========================
+
+# -------------------------
+# Model blobs (VERY LARGE)
+# -------------------------
+models/blobs/
+models/blobs/**
+
+# Partial downloads
+models/blobs/*-partial*
+models/blobs/*.tmp
+
+# -------------------------
+# Model manifests (optional)
+# Keep structure, ignore content
+# -------------------------
+models/manifests/**
+!models/manifests/
+!models/manifests/registry.ollama.ai/
+!models/manifests/registry.ollama.ai/library/
+
+# -------------------------
+# Local build artifacts
+# -------------------------
+*.log
+*.cache
+.cache_router/
+router_metrics.json
+
+# -------------------------
+# Keys / sensitive files
+# -------------------------
+id_ed25519
+id_ed25519.pub
+*.pem
+*.key
+
+# -------------------------
+# OS / editor junk
+# -------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# -------------------------
+# Temporary / crash files
+# -------------------------
+*.tmp
+*.temp
+*.pid
+*.lock
+
+# -------------------------
+# Optional: Ignore all models completely
+# (Uncomment if you NEVER want models tracked)
+# -------------------------
+# models/
+
+# -------------------------
+# Allow configs & modelfiles
+# -------------------------
+!modelfiles/
+!modelfiles/**
+!system-prompts/
+!system-prompts/**
+!config.json
+!build_models.sh
+```

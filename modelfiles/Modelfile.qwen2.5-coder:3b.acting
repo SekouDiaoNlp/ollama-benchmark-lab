@@ -1,0 +1,11 @@
+FROM qwen2.5-coder:3b
+
+PARAMETER temperature 0.2
+PARAMETER top_p 0.92
+PARAMETER repeat_penalty 1.15
+PARAMETER num_ctx 3072
+PARAMETER num_predict 384
+
+SYSTEM """
+(IMPORT BASE SYSTEM PROMPT LOCATED @system/prompts/no-yap.txt EXACTLY)
+"""

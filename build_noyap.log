@@ -1,0 +1,55 @@
+[2026-04-23 17:47:43] Models: 24
+[2026-04-23 17:47:43] Processing: ./modelfiles/Modelfile.base
+[2026-04-23 17:47:43] Processing: ./modelfiles/Modelfile.codegemma:2b.acting
+[2026-04-23 17:47:44] SKIP: base:noyap exists
+[2026-04-23 17:47:44] SKIP: codegemma:2b-acting-noyap exists
+[2026-04-23 17:47:44] Processing: ./modelfiles/Modelfile.codegemma:7b.acting
+[2026-04-23 17:47:44] Processing: ./modelfiles/Modelfile.codellama:7b
+[2026-04-23 17:47:44] SKIP: base model missing: codellama:7b
+[2026-04-23 17:47:44] Processing: ./modelfiles/Modelfile.codellama:7b-instruct
+[2026-04-23 17:47:44] Building: codegemma:7b-acting-tmp
+[2026-04-23 17:47:44] Building: codellama:7b-instruct-tmp
+[?2026h[?25l[1Ggathering model components [K
+using existing layer sha256:3a43f93b78ec50f7c4e4dc8bd1cb3fff5a900e7d574c51a6f7495e48486e0dac [K
+using existing layer sha256:8c17c2ebb0ea011be9981cc3922db8ca8fa61e828c5d3f44cb6ae342bf80460b [K
+using existing layer sha256:590d74a5569b8a20eb2a8b0aa869d1d1d3faf6a7fdda1955ae827073c7f502fc [K
+using existing layer sha256:2e0493f67d0c8c9c68a8aeacdf6a38a2151cb3c4c1d42accf296e19810527988 [K
+creating new layer sha256:32faa5d863ed422d4ff0112f34aff7aa4a00114a1dd04e30591a4378b91d6704 [K
+creating new layer sha256:58b23a09d10925081086f444ca7b9b664710479372b80b12f1c25d9c87edda59 [K
+writing manifest [K
+success [K[?25h[?2026l
+[?2026h[?25l[1Ggathering model components [K
+using existing layer sha256:392f2ba7a9bea371a2e27b547cbed87eb3964ac722b26d847b66fa90e5b8c49e [K
+using existing layer sha256:097a36493f718248845233af1d3fefe7a303f864fae13bc31a3a9704229378ca [K
+using existing layer sha256:109037bec39c0becc8221222ae23557559bc594290945a2c4221ab4f303b8871 [K
+creating new layer sha256:bc29094d15c5bd500bee67253f85e3e86595a809290473235e1f07ab5246ef66 [K
+creating new layer sha256:b76109bdb5a30110383dccaf479db988cb157ae1394772b8d4a343d8430bf7ad [K
+writing manifest [K
+success [K[?25h[?2026l
+[2026-04-23 17:50:13] CREATED: codellama:7b-instruct-noyap
+[2026-04-23 17:50:13] Processing: ./modelfiles/Modelfile.codellama:7b-instruct.acting
+[2026-04-23 17:50:13] Building: codellama:7b-instruct-acting-tmp
+[?2026h[?25l[1Ggathering model components [K
+using existing layer sha256:3a43f93b78ec50f7c4e4dc8bd1cb3fff5a900e7d574c51a6f7495e48486e0dac [K
+using existing layer sha256:8c17c2ebb0ea011be9981cc3922db8ca8fa61e828c5d3f44cb6ae342bf80460b [K
+using existing layer sha256:590d74a5569b8a20eb2a8b0aa869d1d1d3faf6a7fdda1955ae827073c7f502fc [K
+using existing layer sha256:2e0493f67d0c8c9c68a8aeacdf6a38a2151cb3c4c1d42accf296e19810527988 [K
+creating new layer sha256:373566a00ae30adce4413f96f3f277dc61c3508496f8de498c94ef36d1cbed14 [K
+creating new layer sha256:482ea49c70f6a1b6d45a3f10dd1da2597a4d655b99a5d5110059f596ea1e0b34 [K
+writing manifest [K
+success [K[?25h[?2026l
+[2026-04-23 17:52:11] CREATED: codegemma:7b-acting-noyap
+[2026-04-23 17:52:11] Processing: ./modelfiles/Modelfile.deepseek-coder:1.3b
+[2026-04-23 17:52:11] SKIP: base model missing: deepseek-coder:1.3b
+[2026-04-23 17:52:11] Processing: ./modelfiles/Modelfile.deepseek-coder:6.7b
+[2026-04-23 17:52:11] SKIP: base model missing: deepseek-coder:6.7b
+[2026-04-23 17:52:11] Processing: ./modelfiles/Modelfile.mistral:7b-instruct
+[2026-04-23 17:52:11] Building: mistral:7b-instruct-tmp
+[?2026h[?25l[1Ggathering model components [K
+using existing layer sha256:f5074b1221da0f5a2910d33b642efa5b9eb58cfdddca1c79e16d7ad28aa2b31f [K
+using existing layer sha256:43070e2d4e532684de521b885f385d0841030efa2b1a20bafb76133a5e1379c1 [K
+using existing layer sha256:1ff5b64b61b9a63146475a24f70d3ca2fd6fdeec44247987163479968896fc0b [K
+creating new layer sha256:952a7fec9d0eb51d0d6c9b8479a4ee0bcf406a2a3e30da778df264b39545de62 [K
+creating new layer sha256:0e8459944ea87591f1acd6d678ddbe37376e8115b5ff9341486d87eeff6d8b49 [K
+writing manifest [K
+success [K[?25h[?2026l
