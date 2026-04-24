@@ -1,52 +1,56 @@
 import subprocess
-import shutil
 import tempfile
+import shutil
 from pathlib import Path
 
 from benchmark.repos.manager import RepoManager
 from benchmark.patch.engine import PatchEngine
+from benchmark.sandbox.image_builder import ImageBuilder
 
 
 class DockerRunner:
     """
-    Full SWE-bench parity runner.
+    SWE-bench parity runner with:
+    - repo snapshot reuse
+    - Docker image caching
+    - patch application
     """
-
-    IMAGE = "python:3.12-slim"
 
     def __init__(self):
         self.repo_manager = RepoManager()
         self.patch_engine = PatchEngine()
+        self.image_builder = ImageBuilder()
 
     def run(self, task: dict):
-        """
-        Executes full SWE-bench flow:
-        clone → checkout → patch → test
-        """
-
-        image_builder = ImageBuilder()
-        image = image_builder.build(working_copy)
-
         repo_url = task.get("repo")
         commit = task.get("base_commit")
         patch = task.get("patch", "")
 
-        workdir = tempfile.mkdtemp(prefix="swe_repo_")
+        if not repo_url or not commit:
+            return {
+                "task_id": task.get("id"),
+                "passed": False,
+                "error": "Missing repo or commit",
+                "stage": "setup"
+            }
+
+        workdir = tempfile.mkdtemp(prefix="swe_task_")
 
         try:
-            # --------------------------------------------------
-            # 1. Clone + checkout
-            # --------------------------------------------------
-            repo_path = self.repo_manager.ensure_repo(repo_url)
+            # ==================================================
+            # 1. GET SNAPSHOT (IMMUTABLE)
+            # ==================================================
+            snapshot_path = self.repo_manager.get_repo(repo_url, commit)
 
+            # ==================================================
+            # 2. CREATE WORKING COPY (FOR PATCH ONLY)
+            # ==================================================
             working_copy = Path(workdir) / "repo"
-            shutil.copytree(repo_path, working_copy)
+            shutil.copytree(snapshot_path, working_copy)
 
-            self.repo_manager.checkout(working_copy, commit)
-
-            # --------------------------------------------------
-            # 2. Apply patch
-            # --------------------------------------------------
+            # ==================================================
+            # 3. APPLY PATCH (IF ANY)
+            # ==================================================
             if patch:
                 patch_result = self.patch_engine.apply_patch(
                     working_copy,
@@ -61,9 +65,14 @@ class DockerRunner:
                         "stage": "patch"
                     }
 
-            # --------------------------------------------------
-            # 3. Run inside Docker
-            # --------------------------------------------------
+            # ==================================================
+            # 4. BUILD / GET CACHED IMAGE (FROM SNAPSHOT!)
+            # ==================================================
+            image = self.image_builder.build(snapshot_path)
+
+            # ==================================================
+            # 5. RUN TASK IN DOCKER
+            # ==================================================
             entrypoint = task.get("execution", {}).get(
                 "entrypoint",
                 "pytest -q"

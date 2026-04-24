@@ -1,30 +1,28 @@
+import argparse
 from benchmark.platform.api import BenchmarkPlatform
-from benchmark.dataset.versioning import DatasetVersionControl
 
 
-def load_dataset():
-    import json
-    from pathlib import Path
+def main():
+    parser = argparse.ArgumentParser(prog="autollama")
 
-    tasks = []
-    for f in Path("tasks").rglob("*.json"):
-        tasks.append(json.loads(f.read_text()))
-    return tasks
+    parser.add_argument("command", choices=["run"])
+    parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--parallel", type=int, default=1)
+    parser.add_argument("--model", type=str, default="default")
 
+    args = parser.parse_args()
 
-def run_pipeline():
-    platform = BenchmarkPlatform()
-    dataset_ctrl = DatasetVersionControl()
+    if args.command == "run":
+        config = {
+            "model": args.model,
+            "limit": args.limit,
+            "parallel": args.parallel,
+        }
 
-    dataset = load_dataset()
-    snapshot_id = dataset_ctrl.save_snapshot(dataset)
+        tasks = []  # placeholder until task loader is wired
 
-    print(f"\n📦 Dataset snapshot: {snapshot_id}")
+        platform = BenchmarkPlatform(config=config)
 
-    report = platform.run_experiment(
-        {"model": "docker-parity"},
-        dataset
-    )
+        result = platform.run_experiment(config, tasks)
 
-    print("\n🏁 AUTOLLAMA DOCKER EXECUTION COMPLETE")
-    print(report)
+        print(result)

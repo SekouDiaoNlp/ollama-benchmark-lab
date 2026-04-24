@@ -10,7 +10,9 @@ class BenchmarkPlatform:
     Central orchestration layer for SWE-bench research system.
     """
 
-    def __init__(self):
+    def __init__(self, config: dict | None = None):
+        self.config = config or {}
+
         self.analytics = BenchmarkAnalytics()
         self.tracker = ExperimentTracker()
         self.leaderboard = Leaderboard()
@@ -38,7 +40,10 @@ class BenchmarkPlatform:
 
         self.tracker.end_run(run_id)
 
-        score = sum(r["passed"] for r in results) / len(results)
+        score = (
+            sum(r["passed"] for r in results) / len(results)
+            if results else 0.0
+        )
 
         self.leaderboard.record(config.get("model"), score)
 
