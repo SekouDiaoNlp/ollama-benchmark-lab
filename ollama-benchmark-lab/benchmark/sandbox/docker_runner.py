@@ -24,6 +24,9 @@ class DockerRunner:
         clone → checkout → patch → test
         """
 
+        image_builder = ImageBuilder()
+        image = image_builder.build(working_copy)
+
         repo_url = task.get("repo")
         commit = task.get("base_commit")
         patch = task.get("patch", "")
@@ -70,9 +73,9 @@ class DockerRunner:
                 "docker", "run", "--rm",
                 "-v", f"{working_copy}:/workspace",
                 "-w", "/workspace",
-                self.IMAGE,
+                image,
                 "bash", "-lc",
-                f"pip install -q -e . || true && {entrypoint}"
+                entrypoint
             ]
 
             proc = subprocess.run(
