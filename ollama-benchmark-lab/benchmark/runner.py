@@ -21,7 +21,7 @@ from typing import List, Dict, Any, Optional
 
 from benchmark.ollama_client import OllamaClient
 from benchmark.checkpoint import CheckpointManager
-from benchmark.evaluator import SimpleEvaluator
+from benchmark.evaluator import RealEvaluator
 from benchmark.utils import load_config
 
 
@@ -193,7 +193,7 @@ class BenchmarkRunner:
     def __init__(self, client: OllamaClient, ckpt: CheckpointManager):
         self.client = client
         self.ckpt = ckpt
-        self.evaluator = SimpleEvaluator()
+        self.evaluator = RealEvaluator()
 
     def run_task(self, model: str, task: Dict[str, Any]) -> RunResult:
 
