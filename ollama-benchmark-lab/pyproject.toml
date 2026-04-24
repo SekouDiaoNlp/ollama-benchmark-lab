@@ -20,6 +20,7 @@ requests = "^2.31.0"
 pydantic = "^2.8.0"
 ray = "2.55.1"
 protobuf = ">=4.25,<5"
+docker = "^7.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"

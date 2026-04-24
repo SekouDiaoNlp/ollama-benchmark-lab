@@ -1,106 +1,86 @@
-import subprocess
-import tempfile
 import shutil
 from pathlib import Path
 
-from benchmark.repos.manager import RepoManager
-from benchmark.patch.engine import PatchEngine
+from benchmark.runtime.repo_manager import RepoManager
 from benchmark.sandbox.image_builder import ImageBuilder
 
 
 class DockerRunner:
-    """
-    SWE-bench parity runner with:
-    - repo snapshot reuse
-    - Docker image caching
-    - patch application
-    """
 
     def __init__(self):
         self.repo_manager = RepoManager()
-        self.patch_engine = PatchEngine()
         self.image_builder = ImageBuilder()
 
-    def run(self, task: dict):
-        repo_url = task.get("repo")
-        commit = task.get("base_commit")
-        patch = task.get("patch", "")
+    def run(self, repo_path: str, command: str):
 
-        if not repo_url or not commit:
-            return {
-                "task_id": task.get("id"),
-                "passed": False,
-                "error": "Missing repo or commit",
-                "stage": "setup"
-            }
+        # -----------------------------
+        # TRACE INPUTS (CRITICAL)
+        # -----------------------------
+        print("[DOCKER DEBUG] repo_path type:", type(repo_path))
+        print("[DOCKER DEBUG] repo_path value:", repo_path)
+        print("[DOCKER DEBUG] command type:", type(command))
+        print("[DOCKER DEBUG] command value:", command)
 
-        workdir = tempfile.mkdtemp(prefix="swe_task_")
+        snapshot_path = self.repo_manager.get_repo(repo_path, "HEAD")
 
-        try:
-            # ==================================================
-            # 1. GET SNAPSHOT (IMMUTABLE)
-            # ==================================================
-            snapshot_path = self.repo_manager.get_repo(repo_url, commit)
+        # -----------------------------
+        # TRACE SNAPSHOT OUTPUT
+        # -----------------------------
+        print("[DOCKER DEBUG] snapshot_path BEFORE conversion:", type(snapshot_path), snapshot_path)
 
-            # ==================================================
-            # 2. CREATE WORKING COPY (FOR PATCH ONLY)
-            # ==================================================
-            working_copy = Path(workdir) / "repo"
-            shutil.copytree(snapshot_path, working_copy)
+        # HARDEN TYPE SAFETY
+        if snapshot_path is not None:
+            snapshot_path = Path(snapshot_path)
 
-            # ==================================================
-            # 3. APPLY PATCH (IF ANY)
-            # ==================================================
-            if patch:
-                patch_result = self.patch_engine.apply_patch(
-                    working_copy,
-                    patch
-                )
+        print("[DOCKER DEBUG] snapshot_path AFTER Path():", type(snapshot_path), snapshot_path)
 
-                if not patch_result["success"]:
-                    return {
-                        "task_id": task.get("id"),
-                        "passed": False,
-                        "error": patch_result["error"],
-                        "stage": "patch"
-                    }
-
-            # ==================================================
-            # 4. BUILD / GET CACHED IMAGE (FROM SNAPSHOT!)
-            # ==================================================
-            image = self.image_builder.build(snapshot_path)
-
-            # ==================================================
-            # 5. RUN TASK IN DOCKER
-            # ==================================================
-            entrypoint = task.get("execution", {}).get(
-                "entrypoint",
-                "pytest -q"
+        if snapshot_path is None or not snapshot_path.exists():
+            raise RuntimeError(
+                f"[DOCKER RUNNER] Missing snapshot or invalid path: {snapshot_path}"
             )
 
-            cmd = [
-                "docker", "run", "--rm",
-                "-v", f"{working_copy}:/workspace",
-                "-w", "/workspace",
-                image,
-                "bash", "-lc",
-                entrypoint
-            ]
+        # -----------------------------
+        # WORKING COPY SETUP
+        # -----------------------------
+        working_copy = Path(f"/tmp/workspace/{hash(str(snapshot_path))}")
 
-            proc = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True
-            )
+        print("[DOCKER DEBUG] working_copy BEFORE exists check:", type(working_copy), working_copy)
 
-            return {
-                "task_id": task.get("id"),
-                "exit_code": proc.returncode,
-                "stdout": proc.stdout,
-                "stderr": proc.stderr,
-                "passed": proc.returncode == 0,
-                "stage": "execution"
-            }
+        if working_copy.exists():
+            shutil.rmtree(working_copy)
 
-        finally:
-            shutil.rmtree(workdir, ignore_errors=True)
+        shutil.copytree(snapshot_path, working_copy)
+
+        print("[DOCKER DEBUG] working_copy AFTER setup:", type(working_copy), working_copy)
+
+        image = self.image_builder.build(snapshot_path)
+
+        return self._execute_container(image, working_copy, command)
+
+    def _execute_container(self, image: str, working_copy: Path, command: str):
+
+        import subprocess
+
+        print("[DOCKER DEBUG] EXECUTE container:")
+        print("  image:", image)
+        print("  working_copy:", working_copy)
+        print("  command:", command)
+
+        cmd = [
+            "docker", "run", "--rm",
+            "-v", f"{working_copy}:/workspace",
+            image,
+            "bash", "-lc", command
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        print("[DOCKER DEBUG] returncode:", result.returncode)
+        print("[DOCKER DEBUG] stdout:", result.stdout[:500])
+        print("[DOCKER DEBUG] stderr:", result.stderr[:500])
+
+        return {
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+            "returncode": result.returncode
+        }

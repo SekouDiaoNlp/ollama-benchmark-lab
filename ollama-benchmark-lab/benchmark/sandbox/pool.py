@@ -1,7 +1,5 @@
 import docker
-import time
 import queue
-import threading
 from typing import Optional
 
 IMAGE = "swe-sandbox:latest"
@@ -25,7 +23,11 @@ class SandboxInstance:
                 stderr=True,
             )
 
-            output = self.client.api.exec_start(exec_id, stream=False, timeout=timeout)
+            output = self.client.api.exec_start(
+                exec_id,
+                stream=False
+            )
+
             return output.decode("utf-8", errors="ignore")
 
         finally:

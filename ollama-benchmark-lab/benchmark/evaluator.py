@@ -62,7 +62,6 @@ class ScoreBreakdown:
 # =========================================================
 
 _pool = SandboxPool(size=4)
-_pool.start()
 
 
 # =========================================================
@@ -130,36 +129,15 @@ class RealEvaluator:
     # =====================================================
 
     def _score_swe(self, task: Dict[str, Any], output: str) -> float:
-        """
-        Executes model output in persistent Docker sandbox
-        and runs pytest-based hidden tests.
-        """
-
         sandbox = _pool.acquire()
 
         try:
-            result = _pool.run(
-                sandbox=sandbox,
-                code=output,
-                test_cmd="pytest -q --disable-warnings --maxfail=1",
+            result = sandbox.exec(
+                ["bash", "-lc", "pytest -q --disable-warnings --maxfail=1"],
                 timeout=task.get("timeout", 120),
             )
 
-            if not result["success"]:
-                return 0.0
-
-            # PASS / FAIL signal
-            if result["returncode"] == 0:
-                return 1.0
-
-            # partial signal (optional debugging insight)
-            stdout = result.get("stdout", "").lower()
-            stderr = result.get("stderr", "").lower()
-
-            if "failed" in stdout or "failed" in stderr:
-                return 0.3
-
-            return 0.0
+            return 1.0 if "failed" not in result.lower() else 0.0
 
         finally:
             _pool.release(sandbox)

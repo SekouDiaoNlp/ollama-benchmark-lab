@@ -4,11 +4,11 @@ from pathlib import Path
 
 class CheckpointManager:
 
-    def __init__(self, path: Path):
-        self.path = path
+    def __init__(self, path: Path | str):
+        self.path = Path(path)
         self.state = {}
 
-        if path.exists():
+        if self.path.exists():
             self._load()
 
     def _load(self):

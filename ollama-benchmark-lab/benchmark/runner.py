@@ -1,14 +1,4 @@
 #!/usr/bin/env python3
-"""
-Ollama Benchmark Runner (vNEXT - SWE-BENCH COMPATIBLE)
-
-Changes:
-- supports public_prompt (SWE format)
-- fallback to legacy prompt
-- passes rubric to evaluator
-- task format hardened
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -21,7 +11,6 @@ from typing import List, Dict, Any
 from benchmark.ollama_client import OllamaClient
 from benchmark.checkpoint import CheckpointManager
 from benchmark.evaluator import RealEvaluator
-from benchmark.utils import load_config
 
 
 # =========================================================
@@ -30,7 +19,6 @@ from benchmark.utils import load_config
 
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS_DIR = ROOT / "results"
-
 STATE_FILE = RESULTS_DIR / "state.jsonl"
 RESULTS_DIR.mkdir(exist_ok=True, parents=True)
 
@@ -61,17 +49,11 @@ def get_models(mode: str) -> List[str]:
 
 
 # =========================================================
-# TASK LOADING (SWE COMPAT)
+# TASK LOADING
 # =========================================================
 
 def load_tasks(cfg: Dict[str, Any], smoke: bool = False) -> List[Dict[str, Any]]:
-    """
-    Loads tasks from tasks/ or tasks_swe/
-    Supports SWE format + legacy format.
-    """
-
     task_root = Path("tasks")
-
     tasks: List[Dict[str, Any]] = []
 
     for path in task_root.glob("**/*.json"):
@@ -120,7 +102,7 @@ class RunResult:
 
 
 # =========================================================
-# RUNNER
+# BENCHMARK RUNNER (IMPORTANT: MUST EXIST)
 # =========================================================
 
 class BenchmarkRunner:
@@ -131,15 +113,11 @@ class BenchmarkRunner:
         self.ckpt = ckpt
 
     def _get_prompt(self, task: Dict[str, Any]) -> str:
-        # SWE-bench style
         if "public_prompt" in task:
             return task["public_prompt"]
-
-        # legacy fallback
         return task.get("prompt", "")
 
     def run_task(self, model: str, task: Dict[str, Any]) -> RunResult:
-
         heartbeat(model, task.get("id", "unknown"))
 
         prompt = self._get_prompt(task)
@@ -152,7 +130,6 @@ class BenchmarkRunner:
         )
 
         latency = time.time() - start
-
         score = self.evaluator.score(task, output)
 
         return RunResult(
@@ -163,7 +140,6 @@ class BenchmarkRunner:
         )
 
     def run(self, models: List[str], tasks: List[Dict[str, Any]], resume: bool):
-
         for model in models:
             for task in tasks:
 
@@ -174,7 +150,6 @@ class BenchmarkRunner:
 
                 try:
                     result = self.run_task(model, task)
-
                     self.ckpt.save(key, asdict(result))
 
                 except Exception as e:
@@ -190,15 +165,10 @@ class BenchmarkRunner:
 # =========================================================
 
 def main():
-
-    cfg = load_config()
-
     parser = argparse.ArgumentParser()
-
     parser.add_argument("--mode", choices=["all", "noyap"], default="all")
-    parser.add_argument("--tasks", choices=["all"], default="all")
-    parser.add_argument("--resume", action="store_true")
     parser.add_argument("--smoke-test", action="store_true")
+    parser.add_argument("--resume", action="store_true")
 
     args = parser.parse_args()
 
@@ -209,12 +179,10 @@ def main():
     runner = BenchmarkRunner(client, evaluator, ckpt)
 
     models = get_models(args.mode)
-    tasks = load_tasks(cfg, smoke=args.smoke_test)
+    tasks = load_tasks({}, smoke=args.smoke_test)
 
     print("\n==============================")
     print("OLLAMA BENCHMARK (SWE MODE)")
-    print(f"Models: {len(models)}")
-    print(f"Tasks:  {len(tasks)}")
     print("==============================\n")
 
     runner.run(models, tasks, args.resume)

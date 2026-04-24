@@ -1,1 +1,1 @@
-{"model": "codegemma:7b-acting-noyap", "task": "swe_perf_issue", "ts": 1776996502.2823043}
+{"model": "mistral:7b-instruct", "task": "swe_refactor_typing", "ts": 1777042828.4073198}

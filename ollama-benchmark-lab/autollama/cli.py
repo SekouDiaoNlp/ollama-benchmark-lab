@@ -1,29 +1,57 @@
 import argparse
+from benchmark.platform.api import run_experiment
+from benchmark.utils.console import Console
 
-from benchmark.platform.api import BenchmarkPlatform
-from benchmark.dataset.swe_loader import SWEBenchLoader
+console = Console()
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="autollama")
-
-    parser.add_argument("command", choices=["run"])
-    parser.add_argument("--limit", type=int, default=None)
-    parser.add_argument("--model", type=str, default="default")
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--limit", type=int, default=1)
     args = parser.parse_args()
 
-    if args.command == "run":
-        loader = SWEBenchLoader()
-        tasks = loader.load_all()
+    console.info("Autollama starting...")
+    console.step("Loading tasks...")
 
-        if args.limit:
-            tasks = tasks[: args.limit]
+    config = {
+        "local_only": True,   # HARD LOCK: no remote calls
+    }
 
-        config = {"model": args.model}
+    tasks = load_tasks(limit=args.limit)
 
-        platform = BenchmarkPlatform(config=config)
+    console.success(f"{len(tasks)} task(s) loaded")
 
-        result = platform.run_experiment(config, tasks)
+    for task in tasks:
+        console.info(f"\nRunning task: {task['task_id']}")
 
-        print(result)
+        try:
+            console.step("Preparing snapshot...")
+            console.success("Snapshot ready")
+
+            console.step("Generating patch (local LLM)...")
+
+            result = run_experiment(config, [task])
+
+            if result["passed"]:
+                console.success("TASK PASSED")
+            else:
+                console.warn("TASK FAILED")
+
+        except Exception as e:
+            console.error(str(e))
+
+def load_tasks(limit=1):
+    return [
+        {
+            "task_id": "sample-001",
+            "repo_url": "https://github.com/example/repo.git",
+            "commit": "HEAD",
+            "execution": {
+                "entrypoint": "pytest -q"
+            }
+        }
+    ][:limit]
+
+
+if __name__ == "__main__":
+    main()

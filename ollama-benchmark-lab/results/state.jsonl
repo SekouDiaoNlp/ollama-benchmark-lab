@@ -21,3 +21,17 @@
 {"key": "codegemma:2b-acting-noyap::swe_refactor_typing", "value": {"model": "codegemma:2b-acting-noyap", "task_id": "swe_refactor_typing", "score": 1.0, "latency_s": 4.37269401550293}}
 {"key": "codegemma:2b-acting-noyap::swe_perf_issue", "value": {"model": "codegemma:2b-acting-noyap", "task_id": "swe_perf_issue", "score": 1.0, "latency_s": 1.4093513488769531}}
 {"key": "codegemma:7b-acting-noyap::swe_refactor_typing", "value": {"model": "codegemma:7b-acting-noyap", "task_id": "swe_refactor_typing", "score": 1.0, "latency_s": 143.01908254623413}}
+{"key": "base:noyap::swe_refactor_typing", "value": {"model": "base:noyap", "task_id": "swe_refactor_typing", "score": 1.0, "latency_s": 137.87510013580322}}
+{"key": "codegemma:2b::swe_refactor_typing", "value": {"model": "codegemma:2b", "task_id": "swe_refactor_typing", "score": 1.0, "latency_s": 4.7859885692596436}}
+{"key": "codegemma:2b-acting-noyap::swe_refactor_typing", "value": {"model": "codegemma:2b-acting-noyap", "task_id": "swe_refactor_typing", "score": 1.0, "latency_s": 4.457016468048096}}
+{"key": "codegemma:7b::swe_refactor_typing", "value": {"model": "codegemma:7b", "task_id": "swe_refactor_typing", "score": 1.0, "latency_s": 102.03784084320068}}
+{"key": "base:noyap::swe_refactor_typing", "value": {"model": "base:noyap", "task_id": "swe_refactor_typing", "score": 1.0, "latency_s": 115.86946678161621}}
+{"key": "codegemma:2b::swe_refactor_typing", "value": {"model": "codegemma:2b", "task_id": "swe_refactor_typing", "score": 1.0, "latency_s": 3.8195667266845703}}
+{"key": "codegemma:2b-acting-noyap::swe_refactor_typing", "value": {"model": "codegemma:2b-acting-noyap", "task_id": "swe_refactor_typing", "score": 1.0, "latency_s": 4.0754265785217285}}
+{"key": "codegemma:7b::swe_refactor_typing", "value": {"model": "codegemma:7b", "task_id": "swe_refactor_typing", "score": 1.0, "latency_s": 96.41363906860352}}
+{"key": "codegemma:7b-acting-noyap::swe_refactor_typing", "value": {"model": "codegemma:7b-acting-noyap", "task_id": "swe_refactor_typing", "score": 1.0, "latency_s": 172.19113159179688}}
+{"key": "codellama:7b-instruct::swe_refactor_typing", "value": {"model": "codellama:7b-instruct", "task_id": "swe_refactor_typing", "score": 1.0, "latency_s": 161.59593272209167}}
+{"key": "codellama:7b-instruct-acting-noyap::swe_refactor_typing", "value": {"model": "codellama:7b-instruct-acting-noyap", "task_id": "swe_refactor_typing", "score": 1.0, "latency_s": 165.0396010875702}}
+{"key": "codellama:7b-instruct-noyap::swe_refactor_typing", "value": {"model": "codellama:7b-instruct-noyap", "task_id": "swe_refactor_typing", "score": 1.0, "latency_s": 157.21026349067688}}
+{"key": "granite-code:3b::swe_refactor_typing", "value": {"model": "granite-code:3b", "task_id": "swe_refactor_typing", "score": 1.0, "latency_s": 5.089101314544678}}
+{"key": "granite-code:8b::swe_refactor_typing", "value": {"model": "granite-code:8b", "task_id": "swe_refactor_typing", "score": 1.0, "latency_s": 30.57690930366516}}
