@@ -1,30 +1,33 @@
+from benchmark.runtime.repo_manager import RepoManager
+from benchmark.runtime.patch_engine import PatchEngine
 from benchmark.sandbox.docker_runner import DockerRunner
-from benchmark.dataset.loader import load_task_by_id
-from pathlib import Path
 
 
-runner = DockerRunner()
+repo_manager = RepoManager()
+patch_engine = PatchEngine()
+docker = DockerRunner()
 
 
-def run_task(task_id: str):
-    task = load_task_by_id(task_id)
-
-    repo = task.get("repo", ".")
-    entrypoint = task["execution"]["entrypoint"]
-
-    tests_path = task["tests"]["path"]
-
-    # Compose execution command
-    command = f"""
-    cd /workspace && 
-    {entrypoint} {tests_path}
+def run_task(task: dict):
+    """
+    Full SWE-bench execution pipeline.
     """
 
-    result = runner.run(repo, command)
+    repo = repo_manager.get_repo(
+        task["repo"],
+        task["base_commit"]
+    )
+
+    if "patch" in task:
+        patch_engine.apply_patch(repo, task["patch"])
+
+    result = docker.run(
+        repo_path=repo,
+        command=task["execution"]["entrypoint"]
+    )
 
     return {
-        "task_id": task_id,
-        "exit_code": result["exit_code"],
-        "logs": result["logs"],
-        "status": result["status"]
+        "tests_path": task["tests"]["path"],
+        "entrypoint": task["execution"]["entrypoint"],
+        "result": result
     }

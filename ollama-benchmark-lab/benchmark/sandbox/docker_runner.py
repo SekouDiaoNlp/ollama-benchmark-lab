@@ -1,58 +1,49 @@
 import docker
-import tempfile
-import shutil
-import subprocess
-from pathlib import Path
-import os
+import uuid
 
 
 class DockerRunner:
     """
-    Minimal SWE-bench style execution sandbox.
+    Isolated execution environment for SWE-bench tasks.
     """
 
     def __init__(self, image="python:3.11-slim"):
         self.client = docker.from_env()
         self.image = image
 
-    def run(self, repo_path: str, command: str, timeout: int = 300):
-        """
-        Execute a command inside a Docker container with repo mounted.
-        """
-
-        repo_path = str(Path(repo_path).resolve())
+    def run(self, repo_path, command):
+        container_name = f"swe_{uuid.uuid4().hex[:8]}"
 
         container = self.client.containers.run(
-            image=self.image,
-            command=["bash", "-lc", command],
-            volumes={
-                repo_path: {"bind": "/workspace", "mode": "rw"}
-            },
-            working_dir="/workspace",
+            self.image,
+            command="/bin/bash",
+            name=container_name,
             detach=True,
-            stderr=True,
-            stdout=True,
-            network_disabled=True,
-            mem_limit="2g"
+            tty=True,
+            volumes={
+                str(repo_path): {
+                    "bind": "/workspace",
+                    "mode": "rw"
+                }
+            },
+            working_dir="/workspace"
         )
 
         try:
-            result = container.wait(timeout=timeout)
-            logs = container.logs().decode("utf-8")
+            exec_log = container.exec_run(command, stdout=True, stderr=True)
+            output = exec_log.output.decode()
 
             return {
-                "exit_code": result.get("StatusCode", 1),
-                "logs": logs,
-                "status": "finished"
+                "status": "success",
+                "output": output
             }
 
         except Exception as e:
-            container.kill()
             return {
-                "exit_code": -1,
-                "logs": str(e),
-                "status": "timeout_or_error"
+                "status": "error",
+                "error": str(e)
             }
 
         finally:
-            container.remove(force=True)
+            container.kill()
+            container.remove()

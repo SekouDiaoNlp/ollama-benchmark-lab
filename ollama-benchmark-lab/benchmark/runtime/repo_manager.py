@@ -1,26 +1,26 @@
+import os
 import subprocess
 from pathlib import Path
+import shutil
 
-CACHE_DIR = Path("cache/repos")
+CACHE_DIR = Path(".cache/repos")
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def get_repo(repo_url: str, commit: str) -> Path:
-    repo_name = repo_url.split("/")[-1].replace(".git", "")
-    repo_path = CACHE_DIR / repo_name
+class RepoManager:
+    """
+    Clones and caches repos for SWE-bench tasks.
+    """
 
-    # Clone if missing
-    if not repo_path.exists():
-        subprocess.run(
-            ["git", "clone", repo_url, str(repo_path)],
-            check=True
-        )
+    def get_repo(self, repo_url: str, commit: str) -> Path:
+        repo_name = repo_url.split("/")[-1].replace(".git", "")
+        repo_path = CACHE_DIR / repo_name
 
-    # Checkout correct commit
-    subprocess.run(
-        ["git", "checkout", commit],
-        cwd=repo_path,
-        check=True
-    )
+        if not repo_path.exists():
+            print(f"[RepoManager] cloning {repo_url}")
+            subprocess.run(["git", "clone", repo_url, str(repo_path)], check=True)
 
-    return repo_path
+        print(f"[RepoManager] resetting to {commit}")
+        subprocess.run(["git", "checkout", commit], cwd=repo_path, check=True)
+
+        return repo_path
