@@ -1,45 +1,80 @@
 import subprocess
-import tempfile
 import shutil
+import tempfile
 from pathlib import Path
+
+from benchmark.repos.manager import RepoManager
+from benchmark.patch.engine import PatchEngine
 
 
 class DockerRunner:
     """
-    SWE-bench parity execution engine using per-task Docker isolation.
+    Full SWE-bench parity runner.
     """
 
     IMAGE = "python:3.12-slim"
 
     def __init__(self):
-        pass
-
-    def _build_command(self, workdir: str, entrypoint: str):
-        return [
-            "docker", "run", "--rm",
-            "-v", f"{workdir}:/workspace",
-            "-w", "/workspace",
-            self.IMAGE,
-            "bash", "-lc", entrypoint
-        ]
+        self.repo_manager = RepoManager()
+        self.patch_engine = PatchEngine()
 
     def run(self, task: dict):
         """
-        Executes a single SWE-bench task in an isolated container.
+        Executes full SWE-bench flow:
+        clone → checkout → patch → test
         """
 
-        workdir = tempfile.mkdtemp(prefix="swe_task_")
+        repo_url = task.get("repo")
+        commit = task.get("base_commit")
+        patch = task.get("patch", "")
+
+        workdir = tempfile.mkdtemp(prefix="swe_repo_")
 
         try:
-            # 1. Prepare workspace
-            self._prepare_workspace(workdir, task)
+            # --------------------------------------------------
+            # 1. Clone + checkout
+            # --------------------------------------------------
+            repo_path = self.repo_manager.ensure_repo(repo_url)
 
-            # 2. Build execution command
-            entrypoint = task.get("execution", {}).get("entrypoint", "pytest -q")
+            working_copy = Path(workdir) / "repo"
+            shutil.copytree(repo_path, working_copy)
 
-            cmd = self._build_command(workdir, entrypoint)
+            self.repo_manager.checkout(working_copy, commit)
 
-            # 3. Execute container
+            # --------------------------------------------------
+            # 2. Apply patch
+            # --------------------------------------------------
+            if patch:
+                patch_result = self.patch_engine.apply_patch(
+                    working_copy,
+                    patch
+                )
+
+                if not patch_result["success"]:
+                    return {
+                        "task_id": task.get("id"),
+                        "passed": False,
+                        "error": patch_result["error"],
+                        "stage": "patch"
+                    }
+
+            # --------------------------------------------------
+            # 3. Run inside Docker
+            # --------------------------------------------------
+            entrypoint = task.get("execution", {}).get(
+                "entrypoint",
+                "pytest -q"
+            )
+
+            cmd = [
+                "docker", "run", "--rm",
+                "-v", f"{working_copy}:/workspace",
+                "-w", "/workspace",
+                self.IMAGE,
+                "bash", "-lc",
+                f"pip install -q -e . || true && {entrypoint}"
+            ]
+
             proc = subprocess.run(
                 cmd,
                 capture_output=True,
@@ -52,30 +87,8 @@ class DockerRunner:
                 "stdout": proc.stdout,
                 "stderr": proc.stderr,
                 "passed": proc.returncode == 0,
+                "stage": "execution"
             }
 
         finally:
             shutil.rmtree(workdir, ignore_errors=True)
-
-    def _prepare_workspace(self, workdir: str, task: dict):
-        """
-        Simulates SWE-bench repo state.
-        In full version: clone repo + apply patch.
-        """
-
-        path = Path(workdir)
-
-        # minimal scaffold
-        (path / "tests").mkdir(parents=True, exist_ok=True)
-
-        tests_path = task.get("tests", {}).get("path", "tests/test_solution.py")
-
-        (path / tests_path).parent.mkdir(parents=True, exist_ok=True)
-        (path / tests_path).write_text(
-            "def test_dummy():\n    assert 1 == 1\n"
-        )
-
-        # placeholder solution
-        (path / "solution.py").write_text(
-            "def solve():\n    return 1\n"
-        )
