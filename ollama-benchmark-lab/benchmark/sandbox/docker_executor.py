@@ -2,66 +2,94 @@ from __future__ import annotations
 
 import subprocess
 import tempfile
-import textwrap
+import shutil
+import uuid
 from pathlib import Path
 from typing import Dict, Any
 
 
 class DockerExecutor:
     """
-    Executes untrusted code inside a Docker sandbox.
-    - timeout enforced
-    - stdout/stderr captured
-    - no host filesystem access
+    Executes model-generated code in isolated Docker container
+    and runs pytest against hidden tests.
     """
 
-    IMAGE = "python:3.12-slim"
+    def __init__(self, timeout: int = 120):
+        self.timeout = timeout
 
-    def run(self, code: str, tests: str | None = None, timeout: int = 5) -> Dict[str, Any]:
+    def run(self, code: str, task: Dict[str, Any]) -> Dict[str, Any]:
+        task_id = task["id"]
 
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
+        tmp_dir = Path(tempfile.mkdtemp(prefix=f"sandbox_{task_id}_"))
+        container_name = f"sandbox_{uuid.uuid4().hex[:8]}"
 
-            # write solution
-            (tmp_path / "solution.py").write_text(code)
+        try:
+            # -----------------------------------------
+            # 1. Write generated code
+            # -----------------------------------------
+            code_file = tmp_dir / "solution.py"
+            code_file.write_text(code)
 
-            # write tests if provided
-            if tests:
-                (tmp_path / "test_solution.py").write_text(tests)
+            # -----------------------------------------
+            # 2. Copy hidden tests
+            # -----------------------------------------
+            tests_src = Path("tasks") / task["mode"].lower() / task_id / "tests"
 
+            if tests_src.exists():
+                shutil.copytree(tests_src, tmp_dir / "tests")
+            else:
+                return {
+                    "success": False,
+                    "error": "missing_tests"
+                }
+
+            # -----------------------------------------
+            # 3. Create minimal runner script
+            # -----------------------------------------
+            (tmp_dir / "run.sh").write_text(
+                """
+pip install pytest >/dev/null 2>&1
+pytest -q --disable-warnings --maxfail=1
+"""
+            )
+
+            # -----------------------------------------
+            # 4. Docker run
+            # -----------------------------------------
             cmd = [
                 "docker", "run", "--rm",
-                "-v", f"{tmp_path}:/workspace",
-                "-w", "/workspace",
-                self.IMAGE,
-                "bash", "-c",
-                self._build_command(tests)
+                "--name", container_name,
+                "-v", f"{tmp_dir.absolute()}:/app",
+                "-w", "/app",
+                "python:3.11-slim",
+                "bash", "run.sh"
             ]
 
-            try:
-                proc = subprocess.run(
-                    cmd,
-                    capture_output=True,
-                    text=True,
-                    timeout=timeout
-                )
+            proc = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=self.timeout
+            )
 
-                return {
-                    "stdout": proc.stdout,
-                    "stderr": proc.stderr,
-                    "returncode": proc.returncode,
-                    "timeout": False
-                }
+            stdout = proc.stdout
+            stderr = proc.stderr
 
-            except subprocess.TimeoutExpired:
-                return {
-                    "stdout": "",
-                    "stderr": "TIMEOUT",
-                    "returncode": -1,
-                    "timeout": True
-                }
+            passed = proc.returncode == 0
 
-    def _build_command(self, tests: str | None) -> str:
-        if tests:
-            return "pytest -q"
-        return "python solution.py"
+            return {
+                "success": True,
+                "passed": passed,
+                "stdout": stdout,
+                "stderr": stderr,
+                "returncode": proc.returncode
+            }
+
+        except subprocess.TimeoutExpired:
+            return {
+                "success": False,
+                "error": "timeout"
+            }
+
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
