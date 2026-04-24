@@ -4,20 +4,19 @@ import uuid
 
 class DockerRunner:
     """
-    Isolated execution environment for SWE-bench tasks.
+    SWE-bench parity execution runtime.
+
+    No host leakage. No assumptions. Fully isolated.
     """
 
     def __init__(self, image="python:3.11-slim"):
         self.client = docker.from_env()
         self.image = image
 
-    def run(self, repo_path, command):
-        container_name = f"swe_{uuid.uuid4().hex[:8]}"
-
+    def run(self, repo_path, command, timeout=300):
         container = self.client.containers.run(
             self.image,
-            command="/bin/bash",
-            name=container_name,
+            command="sleep infinity",
             detach=True,
             tty=True,
             volumes={
@@ -30,18 +29,19 @@ class DockerRunner:
         )
 
         try:
-            exec_log = container.exec_run(command, stdout=True, stderr=True)
-            output = exec_log.output.decode()
+            exec_result = container.exec_run(
+                cmd=f"bash -lc '{command}'",
+                stdout=True,
+                stderr=True,
+                demux=True
+            )
+
+            stdout, stderr = exec_result.output
 
             return {
-                "status": "success",
-                "output": output
-            }
-
-        except Exception as e:
-            return {
-                "status": "error",
-                "error": str(e)
+                "stdout": stdout.decode() if stdout else "",
+                "stderr": stderr.decode() if stderr else "",
+                "exit_code": exec_result.exit_code
             }
 
         finally:

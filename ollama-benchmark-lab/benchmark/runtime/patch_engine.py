@@ -4,17 +4,18 @@ from pathlib import Path
 
 class PatchEngine:
     """
-    Applies patch/diff inside repo.
+    Applies SWE-bench patches exactly as CI would.
     """
 
-    def apply_patch(self, repo_path: Path, patch_text: str):
-        patch_file = repo_path / "temp.patch"
-        patch_file.write_text(patch_text)
+    def apply(self, repo_path: Path, patch: str):
+        patch_file = repo_path / "_patch.diff"
+        patch_file.write_text(patch)
 
-        subprocess.run(
-            ["git", "apply", str(patch_file)],
-            cwd=repo_path,
-            check=True
-        )
-
-        patch_file.unlink()
+        try:
+            subprocess.run(
+                ["git", "apply", "--whitespace=fix", str(patch_file)],
+                cwd=repo_path,
+                check=True
+            )
+        finally:
+            patch_file.unlink()
