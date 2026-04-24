@@ -3,6 +3,7 @@ name = "ollama-benchmark-lab"
 version = "0.1.0"
 description = "Local LLM benchmarking framework for Ollama models (PLAN/ACT/SWE-style evaluation)"
 authors = ["sek <sek@local>"]
+packages = [{ include = "benchmark" }]
 
 # 🚨 KEY FIX: disable package mode behavior
 package-mode = false

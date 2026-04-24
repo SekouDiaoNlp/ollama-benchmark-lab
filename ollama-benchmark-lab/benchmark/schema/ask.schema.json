@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SWE-Bench Task Schema v2",
+  "type": "object",
+  "required": ["id", "mode", "public_prompt", "version"],
+  "properties": {
+
+    "id": {
+      "type": "string"
+    },
+
+    "mode": {
+      "type": "string",
+      "enum": ["ACT", "PLAN", "SWE"]
+    },
+
+    "public_prompt": {
+      "type": "string"
+    },
+
+    "tests": {
+      "type": ["string", "null"],
+      "description": "Hidden pytest or execution harness"
+    },
+
+    "constraints": {
+      "type": "object"
+    },
+
+    "rubric": {
+      "type": "object",
+      "properties": {
+        "correctness": { "type": "number" },
+        "structure": { "type": "number" },
+        "edge_cases": { "type": "number" },
+        "efficiency": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+
+    "version": {
+      "type": "string"
+    }
+  }
+}

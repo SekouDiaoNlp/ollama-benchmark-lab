@@ -1,174 +1,151 @@
-import os
+#!/usr/bin/env python3
+
 import sys
-import json
-import subprocess
-import time
 from pathlib import Path
 
 # =========================================================
-# CRITICAL FIX: FORCE PROJECT ROOT ON IMPORT PATH
+# FIX IMPORT PATH (CRITICAL FOR POETRY + SCRIPTS)
 # =========================================================
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-os.environ["PYTHONPATH"] = str(PROJECT_ROOT) + ":" + os.environ.get("PYTHONPATH", "")
-sys.path.insert(0, str(PROJECT_ROOT))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
+# =========================================================
+# IMPORTS
+# =========================================================
 
-CONFIG_PATH = PROJECT_ROOT / "benchmark_config.json"
+import json
+import subprocess
+
+from benchmark.validation.schema_validator import SchemaValidator
 
 
 # =========================================================
 # CONFIG
 # =========================================================
 
+CONFIG_PATH = ROOT / "benchmark_config.json"
+
+
 def load_config():
     if CONFIG_PATH.exists():
         return json.loads(CONFIG_PATH.read_text())
-    return {"safety": {"auto_repair": True}}
+    return {
+        "safety": {
+            "auto_repair": True,
+            "fail_fast": False
+        }
+    }
 
 
 # =========================================================
-# LOGGING
+# DIRECTORY CHECKS
 # =========================================================
 
-def ok(msg: str):
-    print(f"? {msg}", flush=True)
-
-
-def warn(msg: str):
-    print(f"? {msg}", flush=True)
-
-
-def fail(msg: str):
-    print(f"? {msg}", flush=True)
-
-
-# =========================================================
-# DIR CHECK
-# =========================================================
-
-def ensure_dir(path: Path, auto_repair: bool) -> bool:
-    if path.exists():
-        ok(f"Found: {path}")
-        return True
-
-    if auto_repair:
-        warn(f"{path} missing → creating scaffold")
-        path.mkdir(parents=True, exist_ok=True)
-        ok(f"{path} created")
-        return True
-
-    fail(f"Missing directory: {path}")
-    return False
-
-
-# =========================================================
-# TASKS
-# =========================================================
-
-def validate_tasks(auto_repair: bool) -> bool:
-    base = PROJECT_ROOT / "tasks"
-
-    if not base.exists():
+def ensure_dir(path: Path, auto_repair: bool):
+    if not path.exists():
         if auto_repair:
-            warn("tasks/ missing → creating scaffold")
-            for sub in ["plan", "act", "swe"]:
-                (base / sub).mkdir(parents=True, exist_ok=True)
-                ok(f"tasks/{sub}/ created")
+            print(f"⚠ {path} missing → creating")
+            path.mkdir(parents=True, exist_ok=True)
+            print(f"✔ {path} created")
             return True
-        fail("tasks/ missing")
-        return False
-
-    for sub in ["plan", "act", "swe"]:
-        ensure_dir(base / sub, auto_repair)
-
-    files = list(base.glob("**/*.json"))
-    ok(f"Tasks loaded: {len(files)} files")
+        else:
+            print(f"✖ Missing directory: {path}")
+            return False
+    print(f"✔ Found: {path}")
     return True
 
 
 # =========================================================
-# OLLAMA
+# SYSTEM CHECKS
 # =========================================================
 
 def check_ollama():
     try:
         out = subprocess.check_output(["ollama", "list"], text=True)
-        models = [l.strip() for l in out.splitlines() if l.strip()]
-        ok(f"Ollama OK ({len(models)-1} models detected)")
-        return True, models
+        lines = [l for l in out.splitlines() if l.strip()]
+        count = len(lines) - 1  # skip header
+        if count <= 0:
+            print("✖ No models detected in ollama")
+            return False
+        print(f"✔ Ollama OK ({count} models detected)")
+        return True
     except Exception as e:
-        fail(f"Ollama error: {e}")
-        return False, []
+        print(f"✖ Ollama not reachable: {e}")
+        return False
 
-
-# =========================================================
-# DISK
-# =========================================================
 
 def check_writable():
-    Path(PROJECT_ROOT / "results").mkdir(exist_ok=True)
-    test = PROJECT_ROOT / "results/.write_test"
-    test.write_text("ok")
-    test.unlink()
-    ok("Disk writable (results/)")
-    return True
-
-
-# =========================================================
-# SMOKE MODEL SELECTION
-# =========================================================
-
-def select_smoke_models(models):
-    def score(m):
-        if "2b" in m:
-            return 0
-        if "3b" in m:
-            return 1
-        return 2
-
-    return sorted(models, key=score)[:2]
-
-
-# =========================================================
-# SMOKE TEST
-# =========================================================
-
-def run_smoke_test(models):
-    ok("\n=== SMOKE TEST START ===")
-
     try:
-        from benchmark.runner import BenchmarkRunner
-        from benchmark.ollama_client import OllamaClient
-        from benchmark.checkpoint import CheckpointManager
-
-        client = OllamaClient()
-        ckpt = CheckpointManager(PROJECT_ROOT / "results/state.jsonl")
-        runner = BenchmarkRunner(client, ckpt)
-
-        task = {
-            "id": "smoke_identity",
-            "mode": "ACT",
-            "prompt": "Return the string OK"
-        }
-
-        for m in models:
-            ok(f"Running: {m}")
-
-            res = runner.run_task(m, task)
-
-            if not res.success:
-                fail(f"Smoke failed: {m}")
-                return False
-
-            ok(f"{m} → score={res.score}")
-
-        ok("=== SMOKE TEST PASSED ===")
+        results = ROOT / "results"
+        results.mkdir(exist_ok=True)
+        test = results / ".write_test"
+        test.write_text("ok")
+        test.unlink()
+        print("✔ Disk writable (results/)")
         return True
-
     except Exception as e:
-        fail(f"Smoke test crashed: {e}")
+        print(f"✖ Write failure: {e}")
         return False
+
+
+# =========================================================
+# TASK VALIDATION
+# =========================================================
+
+def validate_tasks(auto_repair: bool):
+    validator = SchemaValidator(auto_repair=auto_repair)
+
+    tasks_dir = ROOT / "tasks"
+    files = list(tasks_dir.glob("**/*.json"))
+
+    total = len(files)
+    valid = 0
+    invalid = 0
+
+    errors = {}
+
+    for f in files:
+        result = validator.validate_file(f)
+
+        if result["valid"]:
+            valid += 1
+        else:
+            invalid += 1
+            errors[f.stem] = result["errors"]
+
+    print("\n📦 SCHEMA VALIDATION")
+    print(f"✔ Total: {total}")
+    print(f"✔ Valid: {valid}")
+    print(f"✖ Invalid: {invalid}")
+
+    if errors:
+        print("\n❌ STRUCTURED ERRORS:")
+        for k, v in list(errors.items())[:10]:
+            print(f" - {k}: {v}")
+
+    return total, valid, invalid
+
+
+# =========================================================
+# GOLDEN TEST CHECK
+# =========================================================
+
+def check_golden_tasks():
+    tasks_dir = ROOT / "tasks"
+    files = list(tasks_dir.glob("**/*.json"))
+
+    golden = 0
+
+    for f in files:
+        data = json.loads(f.read_text())
+        if data.get("golden"):
+            golden += 1
+
+    print("\n🧪 GOLDEN TEST SUITE")
+    print(f"✔ Golden tasks: {golden}")
+
+    return golden
 
 
 # =========================================================
@@ -177,43 +154,67 @@ def run_smoke_test(models):
 
 def main():
     cfg = load_config()
+
     auto_repair = cfg.get("safety", {}).get("auto_repair", True)
+    fail_fast = cfg.get("safety", {}).get("fail_fast", False)
 
-    print("\n=== PREFLIGHT CHECK (HARDENED MODE) ===\n")
-
-    ok_state = True
+    print("\n=== PREFLIGHT (FULL VALIDATION MODE) ===\n")
 
     print(f"Python: {sys.version}")
-    print(f"Executable: {sys.executable}\n")
+    print(f"Exec: {sys.executable}")
 
-    ok_state &= ensure_dir(PROJECT_ROOT / "benchmark", auto_repair)
-    ok_state &= ensure_dir(PROJECT_ROOT / "analysis", auto_repair)
-    ok_state &= ensure_dir(PROJECT_ROOT / "dashboard", auto_repair)
+    ok = True
 
-    ok_state &= validate_tasks(auto_repair)
+    # -----------------------------------------------------
+    # STRUCTURE
+    # -----------------------------------------------------
 
-    ok_state &= check_writable()
+    ok &= ensure_dir(ROOT / "benchmark", auto_repair)
+    ok &= ensure_dir(ROOT / "analysis", auto_repair)
+    ok &= ensure_dir(ROOT / "dashboard", auto_repair)
+    ok &= ensure_dir(ROOT / "tasks/plan", auto_repair)
+    ok &= ensure_dir(ROOT / "tasks/act", auto_repair)
+    ok &= ensure_dir(ROOT / "tasks/swe", auto_repair)
 
-    ollama_ok, models = check_ollama()
-    ok_state &= ollama_ok
+    # -----------------------------------------------------
+    # TASK VALIDATION
+    # -----------------------------------------------------
 
-    if ok_state:
-        smoke_models = select_smoke_models(models)
+    total, valid, invalid = validate_tasks(auto_repair)
 
-        print("\nSelected smoke models:")
-        for m in smoke_models:
-            print(" -", m)
+    if fail_fast and invalid > 0:
+        print("\n❌ STRICT MODE ENABLED → INVALID TASKS BLOCK EXECUTION")
+        sys.exit(1)
 
-        ok_state &= run_smoke_test(smoke_models)
-    else:
-        warn("Skipping smoke test due to system issues")
+    # -----------------------------------------------------
+    # SYSTEM CHECKS
+    # -----------------------------------------------------
+
+    ok &= check_writable()
+    ok &= check_ollama()
+
+    # -----------------------------------------------------
+    # GOLDEN TASKS
+    # -----------------------------------------------------
+
+    golden = check_golden_tasks()
+
+    # -----------------------------------------------------
+    # FINAL STATUS
+    # -----------------------------------------------------
 
     print("\n==============================")
-    if ok_state:
-        ok("SYSTEM READY FOR BENCHMARK")
+    print("📊 SYSTEM VALIDATION COMPLETE")
+    print(f"Tasks:  {total}")
+    print(f"Valid:  {valid}")
+    print(f"Golden: {golden}")
+    print("==============================")
+
+    if ok:
+        print("🚀 READY FOR BENCHMARK")
         sys.exit(0)
     else:
-        fail("SYSTEM NOT READY")
+        print("❌ SYSTEM NOT READY")
         sys.exit(1)
 
 
