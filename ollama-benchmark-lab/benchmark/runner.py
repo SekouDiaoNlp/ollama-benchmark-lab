@@ -1,131 +1,108 @@
 #!/usr/bin/env python3
 """
-Ollama Benchmark Runner (vNEXT)
+Ollama Benchmark Runner (vNEXT++)
 
-Key properties:
-- crash-safe / sleep-safe via checkpointing
-- resumable runs
-- PLAN / ACT evaluation modes
-- model filtering (ALL vs NOYAP only)
-- smoke-test mode (infrastructure validation)
-- heartbeat + watchdog integration ready
+Fixes:
+- smoke test now uses ONLY fastest models (not full model set)
+- introduces model profiling cache
+- prevents long-running smoke execution
+- enforces deterministic fast-path fallback
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import os
 import time
+import subprocess
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
 from benchmark.ollama_client import OllamaClient
 from benchmark.checkpoint import CheckpointManager
-from benchmark.state import RunState
 from benchmark.evaluator import SimpleEvaluator
+from benchmark.utils import load_config
 
 
 # =========================================================
-# CONFIG PATHS
+# PATHS
 # =========================================================
 
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS_DIR = ROOT / "results"
-
-STATE_FILE = RESULTS_DIR / "state.jsonl"
-RESULTS_FILE = RESULTS_DIR / "results.jsonl"
-HEARTBEAT_FILE = RESULTS_DIR / "heartbeat.txt"
-
 RESULTS_DIR.mkdir(exist_ok=True, parents=True)
 
+STATE_FILE = RESULTS_DIR / "state.jsonl"
+HEARTBEAT_FILE = RESULTS_DIR / "heartbeat.txt"
 
-# =========================================================
-# TASK DEFINITIONS (PLAN / ACT)
-# at least 30–80 LOC each requirement satisfied elsewhere in tasks/
-# =========================================================
-
-PLAN_TASKS = [
-    {
-        "id": "plan_sorting_optimizer",
-        "mode": "PLAN",
-        "prompt": """
-Design a system that selects the optimal sorting algorithm at runtime.
-
-Constraints:
-- Must support arrays up to 10^7 elements
-- Must detect nearly-sorted input
-- Must switch between quicksort, mergesort, insertion sort
-- Must be fully typed
-- Must include benchmarking hooks
-
-Return only Python code.
-"""
-    },
-    {
-        "id": "plan_ast_pipeline",
-        "mode": "PLAN",
-        "prompt": """
-Design a Python AST transformation pipeline that:
-
-- parses Python source code
-- applies a sequence of transforms
-- supports plugin architecture
-- logs transformations
-- is testable with pytest
-
-Return full typed implementation.
-"""
-    }
-]
-
-ACT_TASKS = [
-    {
-        "id": "act_palindrome",
-        "mode": "ACT",
-        "prompt": """
-Write a fully typed Python module that:
-- checks if a string is a palindrome
-- ignores punctuation and case
-- supports Unicode normalization
-- includes a pytest test suite
-- includes CLI entrypoint
-
-Return full code.
-"""
-    },
-    {
-        "id": "act_patch_refactor",
-        "mode": "ACT",
-        "prompt": """
-Given a buggy function (assume provided), produce a PATCH-style fix:
-
-Requirements:
-- output unified diff format
-- fix type issues
-- improve performance
-- add missing tests
-- must not rewrite unrelated code
-
-Return ONLY the patch.
-"""
-    }
-]
+MODEL_CACHE_FILE = RESULTS_DIR / "model_profile_cache.json"
 
 
 # =========================================================
-# MODEL FILTERING
+# TASK LOADING
 # =========================================================
 
-def get_models(mode: str) -> List[str]:
+def load_tasks(cfg: Dict[str, Any], smoke: bool = False) -> List[Dict[str, Any]]:
     """
-    mode:
-      - all
-      - noyap
+    Robust recursive task loader:
+    - supports tasks/plan, tasks/act, tasks/swe
+    - case normalizes mode
+    - smoke-safe slicing
     """
-    import subprocess
 
+    import json
+    from pathlib import Path
+
+    ROOT = Path(__file__).resolve().parents[1]
+    task_dir = ROOT / "tasks"
+
+    if not task_dir.exists():
+        print(f"⚠ tasks directory not found: {task_dir}")
+        return []
+
+    tasks = []
+
+    # 🔥 FIX: recursive search
+    for file in task_dir.rglob("*.json"):
+
+        try:
+            task = json.loads(file.read_text())
+
+            # normalize mode
+            if "mode" in task:
+                task["mode"] = task["mode"].upper()
+
+            # optional: infer mode from folder if missing
+            if "mode" not in task:
+                if "plan" in str(file).lower():
+                    task["mode"] = "PLAN"
+                elif "act" in str(file).lower():
+                    task["mode"] = "ACT"
+                elif "swe" in str(file).lower():
+                    task["mode"] = "SWE"
+
+            tasks.append(task)
+
+        except Exception as e:
+            print(f"⚠ Failed loading {file}: {e}")
+
+    if smoke:
+        return tasks[:2]
+
+    mode = cfg.get("tasks", {}).get("mode", "all").upper()
+
+    if mode == "ALL":
+        return tasks
+
+    return [t for t in tasks if t.get("mode", "").upper() == mode]
+
+
+# =========================================================
+# MODEL SELECTION + PROFILING CACHE
+# =========================================================
+
+def _get_all_models() -> List[str]:
     raw = subprocess.check_output(["ollama", "list"], text=True)
     lines = raw.splitlines()[1:]
 
@@ -133,33 +110,71 @@ def get_models(mode: str) -> List[str]:
     for line in lines:
         if not line.strip():
             continue
-        name = line.split()[0]
+        models.append(line.split()[0])
 
-        if mode == "noyap":
-            if "noyap" in name:
-                models.append(name)
-        else:
-            models.append(name)
+    return models
 
-    return sorted(models)
+
+def _load_model_cache() -> Optional[Dict[str, float]]:
+    if MODEL_CACHE_FILE.exists():
+        return json.loads(MODEL_CACHE_FILE.read_text())
+    return None
+
+
+def _save_model_cache(data: Dict[str, float]):
+    MODEL_CACHE_FILE.write_text(json.dumps(data, indent=2))
+
+
+def _default_fast_models(all_models: List[str]) -> List[str]:
+    """
+    deterministic fallback if no cache exists
+    """
+    preferred = [
+        "codegemma:2b-acting-noyap",
+        "starcoder2:3b-acting-noyap",
+    ]
+
+    return [m for m in preferred if m in all_models][:2]
+
+
+def filter_models(cfg: Dict[str, Any], smoke: bool = False) -> List[str]:
+    all_models = _get_all_models()
+
+    # normal mode
+    if not smoke:
+        if cfg["model_selection"]["mode"] == "noyap_only":
+            return [m for m in all_models if "noyap" in m]
+        return all_models
+
+    # =========================
+    # SMOKE MODE FIX
+    # =========================
+
+    cache = _load_model_cache()
+
+    if cache:
+        # sort by latency ascending
+        sorted_models = sorted(cache.items(), key=lambda x: x[1])
+        return [m for m, _ in sorted_models[:2]]
+
+    # fallback if no cache
+    return _default_fast_models(all_models)
 
 
 # =========================================================
-# HEARTBEAT SYSTEM
+# HEARTBEAT
 # =========================================================
 
 def write_heartbeat(model: str, task_id: str):
-    HEARTBEAT_FILE.write_text(
-        json.dumps({
-            "timestamp": time.time(),
-            "model": model,
-            "task": task_id
-        })
-    )
+    HEARTBEAT_FILE.write_text(json.dumps({
+        "timestamp": time.time(),
+        "model": model,
+        "task": task_id
+    }))
 
 
 # =========================================================
-# MAIN RUNNER
+# RUNNER
 # =========================================================
 
 @dataclass
@@ -185,17 +200,12 @@ class BenchmarkRunner:
         write_heartbeat(model, task["id"])
 
         start = time.time()
-
-        output = self.client.run(
-            model=model,
-            prompt=task["prompt"]
-        )
-
+        output = self.client.run(model=model, prompt=task["prompt"])
         latency = time.time() - start
 
         score = self.evaluator.score(task, output)
 
-        result = RunResult(
+        return RunResult(
             model=model,
             task_id=task["id"],
             mode=task["mode"],
@@ -204,8 +214,6 @@ class BenchmarkRunner:
             output_chars=len(output),
             score=score
         )
-
-        return result
 
     def run(self, models: List[str], tasks: List[Dict[str, Any]], resume: bool):
 
@@ -219,7 +227,6 @@ class BenchmarkRunner:
 
                 try:
                     result = self.run_task(model, task)
-
                     self.ckpt.save(key, asdict(result))
 
                 except Exception as e:
@@ -236,6 +243,8 @@ class BenchmarkRunner:
 
 def main():
 
+    cfg = load_config()
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--mode", choices=["all", "noyap"], default="all")
@@ -250,28 +259,15 @@ def main():
 
     runner = BenchmarkRunner(client, ckpt)
 
-    models = get_models(args.mode)
-
-    if args.smoke_test:
-        print("🧪 SMOKE TEST MODE")
-        models = models[:2]
-        tasks = PLAN_TASKS[:1] + ACT_TASKS[:1]
-    else:
-        if args.tasks == "plan":
-            tasks = PLAN_TASKS
-        elif args.tasks == "act":
-            tasks = ACT_TASKS
-        else:
-            tasks = PLAN_TASKS + ACT_TASKS
+    models = filter_models(cfg, smoke=args.smoke_test)
+    tasks = load_tasks(cfg, smoke=args.smoke_test)
 
     print(f"""
 ==============================
-OLLAMA BENCHMARK vNEXT
+OLLAMA BENCHMARK vNEXT++
+MODE: {'SMOKE' if args.smoke_test else 'FULL'}
 Models: {len(models)}
 Tasks:  {len(tasks)}
-Mode:   {args.mode}
-Resume: {args.resume}
-Smoke:  {args.smoke_test}
 ==============================
 """)
 
