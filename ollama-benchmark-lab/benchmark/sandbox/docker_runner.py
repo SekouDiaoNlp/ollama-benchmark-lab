@@ -1,64 +1,37 @@
-from __future__ import annotations
-
 import subprocess
-import tempfile
-import os
-from dataclasses import dataclass
+import uuid
+from pathlib import Path
+
+IMAGE = "swe-sandbox:latest"
 
 
-@dataclass
-class DockerResult:
-    passed: bool
-    stdout: str
-    stderr: str
-    timeout: bool
+def run_in_container(repo_path: Path, command: str, timeout: int = 300):
+    container_id = f"swe_{uuid.uuid4().hex[:8]}"
 
+    try:
+        result = subprocess.run(
+            [
+                "docker", "run", "--rm",
+                "--name", container_id,
+                "-v", f"{repo_path}:/workspace",
+                IMAGE,
+                "bash", "-lc", command
+            ],
+            text=True,
+            capture_output=True,
+            timeout=timeout
+        )
 
-class DockerSandboxRunner:
+        return {
+            "status": "passed" if result.returncode == 0 else "failed",
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+            "returncode": result.returncode
+        }
 
-    IMAGE = "python:3.12-slim"
-
-    def run(self, code: str, tests: str, timeout: int = 10) -> DockerResult:
-
-        with tempfile.TemporaryDirectory() as tmp:
-
-            # write solution
-            with open(f"{tmp}/solution.py", "w") as f:
-                f.write(code)
-
-            # write tests
-            with open(f"{tmp}/test_hidden.py", "w") as f:
-                f.write(tests)
-
-            try:
-                cmd = [
-                    "docker", "run", "--rm",
-                    "-v", f"{tmp}:/workspace",
-                    "-w", "/workspace",
-                    "--network", "none",
-                    self.IMAGE,
-                    "bash", "-c",
-                    "pip install pytest -q && pytest -q"
-                ]
-
-                result = subprocess.run(
-                    cmd,
-                    capture_output=True,
-                    text=True,
-                    timeout=timeout
-                )
-
-                return DockerResult(
-                    passed=result.returncode == 0,
-                    stdout=result.stdout,
-                    stderr=result.stderr,
-                    timeout=False
-                )
-
-            except subprocess.TimeoutExpired:
-                return DockerResult(
-                    passed=False,
-                    stdout="",
-                    stderr="TIMEOUT",
-                    timeout=True
-                )
+    except subprocess.TimeoutExpired:
+        return {
+            "status": "timeout",
+            "stdout": "",
+            "stderr": "Execution timed out"
+        }
