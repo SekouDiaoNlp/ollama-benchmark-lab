@@ -1,1 +1,1 @@
-{"model": "mistral:7b-instruct", "task": "swe_refactor_typing", "ts": 1777042828.4073198}
+{"model": "m1", "task": "t2", "ts": 1777055885.1402721}

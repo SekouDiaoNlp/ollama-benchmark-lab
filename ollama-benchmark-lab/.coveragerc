@@ -1,0 +1,15 @@
+[run]
+source = benchmark, autollama
+omit = 
+    */__init__.py
+    benchmark/tests/*
+
+[report]
+show_missing = True
+precision = 2
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass

@@ -41,6 +41,9 @@ docker = "^7.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
+pytest-cov = "^5.0.0"
+pytest-mock = "^3.14.0"
+hypothesis = "^6.100.0"
 ruff = "^0.6.0"
 mypy = "^1.10.0"
 
@@ -56,12 +59,17 @@ autollama = "autollama.cli:main"
 requires = ["poetry-core>=1.8.0"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.pytest.ini_options]
+norecursedirs = ["tasks"]
+testpaths = ["tests"]
+pythonpath = ["."]
+
 [tool.mypy]
-strict = True
-disallow_untyped_defs = True
-disallow_any_unimported = True
-no_implicit_optional = True
-check_untyped_defs = True
-warn_return_any = True
-warn_unused_ignores = True
-show_error_codes = True
+strict = true
+disallow_untyped_defs = true
+disallow_any_unimported = true
+no_implicit_optional = true
+check_untyped_defs = true
+warn_return_any = true
+warn_unused_ignores = true
+show_error_codes = true

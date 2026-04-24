@@ -34,8 +34,11 @@ class PatchEngine:
             Path: The repository path, returned for convenience in call chains.
 
         Raises:
-            subprocess.CalledProcessError: If `git apply` fails to apply the patch cleanly.
+            RuntimeError: If `git apply` fails to apply the patch cleanly.
         """
+        if not patch:
+            return repo_path
+
         patch_file: Path = repo_path / "_patch.diff"
         patch_file.write_text(patch)
 
@@ -43,8 +46,11 @@ class PatchEngine:
             subprocess.run(
                 ["git", "apply", "--whitespace=fix", str(patch_file)],
                 cwd=str(repo_path),
-                check=True
+                check=True,
+                capture_output=True
             )
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Patch failed to apply: {e.stderr.decode()}") from e
         finally:
             if patch_file.exists():
                 patch_file.unlink()

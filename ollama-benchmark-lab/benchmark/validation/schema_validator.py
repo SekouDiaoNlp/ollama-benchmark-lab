@@ -12,13 +12,16 @@ Example:
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Type
+
+from pydantic import ValidationError
+from benchmark.validation.models import BaseTask, SWETask, PlanTask, ActTask, TaskMode
 
 
 class SchemaValidator:
     """
-    Dict-based validator (SWE-bench v2 compatible).
-    NO file-path coupling inside validation logic.
+    Pydantic-based validator (SWE-bench v2 compatible).
+    Enforces strict structural rules using typed data models.
 
     Attributes:
         auto_repair (bool): If True, the validator may attempt to repair
@@ -40,7 +43,7 @@ class SchemaValidator:
 
     def validate_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Validate a task dictionary directly against the required schema.
+        Validate a task dictionary using Pydantic models.
 
         Args:
             task (Dict[str, Any]): The raw task configuration dictionary.
@@ -48,61 +51,29 @@ class SchemaValidator:
         Returns:
             Dict[str, Any]: A result dictionary containing 'valid' (bool) and 'errors' (List[str]).
         """
-        errors: List[str] = []
-
-        # -------------------------
-        # REQUIRED TOP-LEVEL FIELDS
-        # -------------------------
-        for key in ["id", "mode", "public_prompt", "version"]:
-            if key not in task or task[key] in (None, ""):
-                errors.append(f"missing:{key}")
-
-        # -------------------------
-        # MODE CHECK
-        # -------------------------
-        if str(task.get("mode", "")) not in {"ACT", "PLAN", "SWE"}:
-            errors.append("invalid:mode")
-
-        # -------------------------
-        # TESTS (NEW SCHEMA FORMAT)
-        # -------------------------
-        tests: Any = task.get("tests", {})
-
-        if isinstance(tests, str):
-            errors.append("tests must be object with path")
-
-        elif isinstance(tests, dict):
-            if not tests.get("path"):
-                errors.append("tests.path missing")
-
-        else:
-            errors.append("tests invalid type")
-
-        # -------------------------
-        # EXECUTION BLOCK
-        # -------------------------
-        execution: Any = task.get("execution", {})
-
-        if not isinstance(execution, dict):
-            errors.append("execution invalid type")
-        else:
-            if not execution.get("entrypoint"):
-                errors.append("execution.entrypoint missing")
-
-        # -------------------------
-        # RUBRIC (OPTIONAL)
-        # -------------------------
-        rubric: Any = task.get("rubric", {})
-        if rubric and isinstance(rubric, dict):
-            allowed = {"correctness", "structure", "edge_cases", "efficiency"}
-            for k in rubric:
-                if k not in allowed:
-                    errors.append(f"rubric.invalid:{k}")
-
-        return {
-            "valid": len(errors) == 0,
-            "errors": errors
+        mode_str = task.get("mode")
+        
+        # Select appropriate model based on mode
+        model_map: Dict[str, Type[BaseTask]] = {
+            TaskMode.SWE: SWETask,
+            TaskMode.PLAN: PlanTask,
+            TaskMode.ACT: ActTask,
         }
+        
+        model_class = model_map.get(mode_str, BaseTask)
+
+        try:
+            model_class.model_validate(task)
+            return {
+                "valid": True,
+                "errors": []
+            }
+        except ValidationError as e:
+            errors = [f"{err['loc'][-1]}:{err['type']}" for err in e.errors()]
+            return {
+                "valid": False,
+                "errors": errors
+            }
 
     # =========================================================
     # BACKWARD COMPATIBILITY LAYER
@@ -124,6 +95,11 @@ class SchemaValidator:
 
         # Otherwise treat as file path
         p: Path = Path(path)
-        task: Dict[str, Any] = json.loads(p.read_text())
-
-        return self.validate_task(task)
+        try:
+            task: Dict[str, Any] = json.loads(p.read_text())
+            return self.validate_task(task)
+        except Exception as e:
+            return {
+                "valid": False,
+                "errors": [f"file_read_error:{str(e)}"]
+            }

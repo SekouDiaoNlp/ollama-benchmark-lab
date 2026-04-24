@@ -28,13 +28,20 @@ class ResultNormalizer:
         Returns:
             Dict[str, Any]: A flattened dictionary containing core metrics (passed, stdout, etc).
         """
-        score_block: Dict[str, Any] = result.get("score", {})
+        score_data = result.get("score")
+        passed = False
+        
+        if isinstance(score_data, dict):
+            passed = bool(score_data.get("passed", False))
+        elif isinstance(score_data, (int, float)):
+            passed = score_data > 0
+            
         baseline_block: Dict[str, Any] = result.get("baseline", {})
         baseline_result: Dict[str, Any] = baseline_block.get("result", {})
 
         return {
             "task_id": task_id,
-            "passed": bool(score_block.get("passed", False)),
+            "passed": passed,
             "exit_code": baseline_result.get("exit_code"),
             "stdout": str(baseline_result.get("stdout", "")),
             "stderr": str(baseline_result.get("stderr", "")),
