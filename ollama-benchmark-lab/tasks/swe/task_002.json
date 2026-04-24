@@ -1,0 +1,15 @@
+{
+  "id": "swe_refactor_typing",
+  "mode": "SWE",
+  "prompt": "Refactor a loosely typed Python module into a fully typed version using modern typing constructs (Protocol, TypedDict). Preserve behavior exactly.",
+  "constraints": {
+    "format": "patch",
+    "focus": "type safety without behavior change"
+  },
+  "public_prompt": "Refactor a loosely typed Python module into a fully typed version using modern typing constructs (Protocol, TypedDict). Preserve behavior exactly.",
+  "version": "1.0",
+  "hash": "auto",
+  "golden": true,
+  "expected": "placeholder_expected_output",
+  "score_expectation": 0.5
+}

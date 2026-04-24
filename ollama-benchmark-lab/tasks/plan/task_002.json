@@ -1,0 +1,20 @@
+{
+  "id": "plan_ml_pipeline",
+  "mode": "PLAN",
+  "prompt": "Design a minimal ML preprocessing pipeline in Python for NLP tasks. It should include tokenization, normalization, dataset abstraction, and batching strategy. Focus on extensibility and testability.",
+  "constraints": {
+    "min_lines": 35,
+    "max_lines": 80,
+    "requirements": [
+      "clean architecture",
+      "typing",
+      "reusability"
+    ]
+  },
+  "public_prompt": "Design a minimal ML preprocessing pipeline in Python for NLP tasks. It should include tokenization, normalization, dataset abstraction, and batching strategy. Focus on extensibility and testability.",
+  "version": "1.0",
+  "hash": "auto",
+  "golden": true,
+  "expected": "placeholder_expected_output",
+  "score_expectation": 0.5
+}

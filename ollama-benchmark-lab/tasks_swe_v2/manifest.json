@@ -1,0 +1,42 @@
+{
+  "version": "swe-bench-v2",
+  "task_count": 9,
+  "tasks": [
+    {
+      "id": "swe_refactor_typing",
+      "mode": "SWE"
+    },
+    {
+      "id": "swe_perf_issue",
+      "mode": "SWE"
+    },
+    {
+      "id": "swe_bug_fix_off_by_one",
+      "mode": "SWE"
+    },
+    {
+      "id": "act_json_validator",
+      "mode": "ACT"
+    },
+    {
+      "id": "act_event_bus",
+      "mode": "ACT"
+    },
+    {
+      "id": "act_palindrome_fuzzer",
+      "mode": "ACT"
+    },
+    {
+      "id": "plan_ml_pipeline",
+      "mode": "PLAN"
+    },
+    {
+      "id": "plan_cache_system",
+      "mode": "PLAN"
+    },
+    {
+      "id": "plan_graph_dijkstra",
+      "mode": "PLAN"
+    }
+  ]
+}

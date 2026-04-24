@@ -1,0 +1,50 @@
+{
+  "version": "swe-bench-style-v1",
+  "tasks": [
+    {
+      "id": "swe_refactor_typing",
+      "mode": "SWE",
+      "file": "task_002.json"
+    },
+    {
+      "id": "swe_perf_issue",
+      "mode": "SWE",
+      "file": "task_003.json"
+    },
+    {
+      "id": "swe_bug_fix_off_by_one",
+      "mode": "SWE",
+      "file": "task_001.json"
+    },
+    {
+      "id": "act_json_validator",
+      "mode": "ACT",
+      "file": "task_002.json"
+    },
+    {
+      "id": "act_event_bus",
+      "mode": "ACT",
+      "file": "task_003.json"
+    },
+    {
+      "id": "act_palindrome_fuzzer",
+      "mode": "ACT",
+      "file": "task_001.json"
+    },
+    {
+      "id": "plan_ml_pipeline",
+      "mode": "PLAN",
+      "file": "task_002.json"
+    },
+    {
+      "id": "plan_cache_system",
+      "mode": "PLAN",
+      "file": "task_003.json"
+    },
+    {
+      "id": "plan_graph_dijkstra",
+      "mode": "PLAN",
+      "file": "task_001.json"
+    }
+  ]
+}

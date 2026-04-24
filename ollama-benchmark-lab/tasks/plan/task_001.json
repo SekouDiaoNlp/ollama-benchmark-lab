@@ -1,0 +1,20 @@
+{
+  "id": "plan_graph_dijkstra",
+  "mode": "PLAN",
+  "prompt": "Design a Python module that implements Dijkstra's algorithm for weighted graphs. Include type hints, clean architecture separation (graph, algorithm, utils), and explain how you would structure unit tests.",
+  "constraints": {
+    "min_lines": 40,
+    "max_lines": 80,
+    "requirements": [
+      "typing",
+      "modularity",
+      "testability"
+    ]
+  },
+  "public_prompt": "Design a Python module that implements Dijkstra's algorithm for weighted graphs. Include type hints, clean architecture separation (graph, algorithm, utils), and explain how you would structure unit tests.",
+  "version": "1.0",
+  "hash": "auto",
+  "golden": true,
+  "expected": "placeholder_expected_output",
+  "score_expectation": 0.5
+}

@@ -1,0 +1,21 @@
+[
+  {
+    "id": "plan_ml_pipeline",
+    "mode": "PLAN",
+    "public_prompt": "Design a minimal ML preprocessing pipeline in Python for NLP tasks. It should include tokenization, normalization, dataset abstraction, and batching strategy. Focus on extensibility and testability.",
+    "tests": null,
+    "constraints": {
+      "min_lines": 35,
+      "max_lines": 80,
+      "requirements": [
+        "clean architecture",
+        "typing",
+        "reusability"
+      ]
+    },
+    "rubric": {
+      "correctness": 1.0
+    },
+    "version": "swe-bench-v2"
+  }
+]

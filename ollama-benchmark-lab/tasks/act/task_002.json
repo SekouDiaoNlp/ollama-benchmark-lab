@@ -1,0 +1,20 @@
+{
+  "id": "act_json_validator",
+  "mode": "ACT",
+  "prompt": "Implement a JSON validation utility in Python with schema-like checks (types, required fields, nested structures). Include example usage and tests.",
+  "constraints": {
+    "min_lines": 35,
+    "max_lines": 80,
+    "must_include": [
+      "typing",
+      "validation",
+      "test block"
+    ]
+  },
+  "public_prompt": "Implement a JSON validation utility in Python with schema-like checks (types, required fields, nested structures). Include example usage and tests.",
+  "version": "1.0",
+  "hash": "auto",
+  "golden": true,
+  "expected": "placeholder_expected_output",
+  "score_expectation": 0.5
+}

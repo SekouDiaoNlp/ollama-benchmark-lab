@@ -1,0 +1,20 @@
+{
+  "id": "act_event_bus",
+  "mode": "ACT",
+  "prompt": "Implement a lightweight in-memory event bus in Python with publish/subscribe semantics. Include typing, error handling, and a demonstration block.",
+  "constraints": {
+    "min_lines": 40,
+    "max_lines": 80,
+    "must_include": [
+      "OOP design",
+      "typing",
+      "demo usage"
+    ]
+  },
+  "public_prompt": "Implement a lightweight in-memory event bus in Python with publish/subscribe semantics. Include typing, error handling, and a demonstration block.",
+  "version": "1.0",
+  "hash": "auto",
+  "golden": true,
+  "expected": "placeholder_expected_output",
+  "score_expectation": 0.5
+}

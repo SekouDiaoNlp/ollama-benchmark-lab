@@ -1,0 +1,15 @@
+{
+  "id": "swe_perf_issue",
+  "mode": "SWE",
+  "prompt": "Optimize a naive O(n^2) string matching function to O(n) or O(n log n) using appropriate algorithmic techniques.",
+  "constraints": {
+    "format": "patch",
+    "focus": "algorithmic improvement"
+  },
+  "public_prompt": "Optimize a naive O(n^2) string matching function to O(n) or O(n log n) using appropriate algorithmic techniques.",
+  "version": "1.0",
+  "hash": "auto",
+  "golden": true,
+  "expected": "placeholder_expected_output",
+  "score_expectation": 0.5
+}

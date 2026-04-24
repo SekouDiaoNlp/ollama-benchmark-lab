@@ -1,0 +1,20 @@
+{
+  "id": "act_palindrome_fuzzer",
+  "mode": "ACT",
+  "prompt": "Write a fully typed Python module that implements a palindrome checker, including edge cases, unicode support, and a small test suite using assertions. The file must be 30-80 lines.",
+  "constraints": {
+    "min_lines": 30,
+    "max_lines": 80,
+    "must_include": [
+      "typing",
+      "tests",
+      "edge cases"
+    ]
+  },
+  "public_prompt": "Write a fully typed Python module that implements a palindrome checker, including edge cases, unicode support, and a small test suite using assertions. The file must be 30-80 lines.",
+  "version": "1.0",
+  "hash": "auto",
+  "golden": true,
+  "expected": "placeholder_expected_output",
+  "score_expectation": 0.5
+}

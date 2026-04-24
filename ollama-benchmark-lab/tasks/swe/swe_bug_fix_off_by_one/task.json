@@ -1,0 +1,10 @@
+{
+  "id": "swe_bug_fix_off_by_one",
+  "mode": "SWE",
+  "version": "1.0",
+  "public_prompt": "Write a Python function in solution.py:\n\ndef fix_off_by_one(x: list[int]) -> list[int]:\n\nThe function should:\n- take a list of integers\n- return a new list where each element is incremented by 1\n- handle empty lists correctly\n- be fully typed",
+  "constraints": {
+    "min_lines": 5,
+    "max_lines": 40
+  }
+}

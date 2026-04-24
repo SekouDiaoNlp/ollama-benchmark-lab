@@ -1,0 +1,31 @@
+[
+  {
+    "id": "plan_cache_system",
+    "mode": "PLAN",
+    "public_prompt": "Design an in-memory LRU cache in Python with TTL support. Include thread-safety considerations and API design.",
+    "private_spec": {
+      "constraints": {
+        "min_lines": 45,
+        "max_lines": 80,
+        "requirements": [
+          "concurrency awareness",
+          "typing",
+          "design clarity"
+        ]
+      },
+      "original_mode": "PLAN"
+    },
+    "tests": {
+      "type": "python",
+      "hidden": true,
+      "entrypoint": "test_main.py",
+      "timeout_sec": 5
+    },
+    "rubric": {
+      "correctness": 0.5,
+      "structure": 0.2,
+      "edge_cases": 0.2,
+      "efficiency": 0.1
+    }
+  }
+]

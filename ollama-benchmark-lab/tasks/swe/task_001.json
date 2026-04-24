@@ -1,0 +1,15 @@
+{
+  "id": "swe_bug_fix_off_by_one",
+  "mode": "SWE",
+  "prompt": "You are given a buggy function that computes prefix sums but has an off-by-one error. Provide a corrected version and explain minimal fix. Output should be a patch-style correction.",
+  "constraints": {
+    "format": "patch",
+    "focus": "minimal diff correctness"
+  },
+  "public_prompt": "You are given a buggy function that computes prefix sums but has an off-by-one error. Provide a corrected version and explain minimal fix. Output should be a patch-style correction.",
+  "version": "1.0",
+  "hash": "auto",
+  "golden": true,
+  "expected": "placeholder_expected_output",
+  "score_expectation": 0.5
+}
