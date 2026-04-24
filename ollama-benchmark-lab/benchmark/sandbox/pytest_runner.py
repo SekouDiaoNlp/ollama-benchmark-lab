@@ -1,12 +1,31 @@
-import tempfile
-from pathlib import Path
+"""
+Pytest execution utility for isolated test runs.
+
+This module provides the `run_pytest` function which executes test suites
+inside an acquired SandboxInstance.
+
+Example:
+    >>> pool = SandboxPool(size=1)
+    >>> sandbox = pool.acquire()
+    >>> res = run_pytest(sandbox, "tests/test_foo.py")
+"""
+
+from typing import Any, Dict
+
+from benchmark.sandbox.pool import SandboxInstance
 
 
-def run_pytest(sandbox, task_path: str):
+def run_pytest(sandbox: SandboxInstance, task_path: str) -> Dict[str, Any]:
     """
-    Executes hidden tests inside sandbox.
-    """
+    Execute hidden tests inside a pre-warmed sandbox using pytest.
 
+    Args:
+        sandbox (SandboxInstance): The active Docker sandbox container.
+        task_path (str): The file path or directory containing the pytest suite.
+
+    Returns:
+        Dict[str, Any]: A dictionary containing a 'passed' boolean and 'raw_output' string.
+    """
     cmd = [
         "pytest",
         task_path,
@@ -15,9 +34,9 @@ def run_pytest(sandbox, task_path: str):
         "--maxfail=1"
     ]
 
-    result = sandbox.exec(cmd, timeout=60)
+    result: str = sandbox.exec(cmd, timeout=60)
 
-    passed = "failed" not in result.lower()
+    passed: bool = "failed" not in result.lower()
 
     return {
         "passed": passed,

@@ -1,26 +1,48 @@
-import multiprocessing as mp
-from queue import Queue
-from benchmark.runtime.research_executor import run_research_task
+"""
+Multiprocessing worker pool for local task distribution.
 
+This module provides a lightweight WorkerPool class that manages 
+parallel execution of research tasks using standard Python multiprocessing.
+"""
+
+import multiprocessing as mp
+from typing import List, Dict, Any, Optional
+from benchmark.runtime.research_executor import run_research_task
 
 class WorkerPool:
     """
-    Lightweight distributed execution without Ray.
+    Manages a set of worker processes for parallel task execution.
     """
 
-    def __init__(self, workers=4):
-        self.workers = workers
-        self.queue = Queue()
+    def __init__(self, workers: int = 4) -> None:
+        """
+        Initialize the worker pool.
 
-    def _worker(self):
+        Args:
+            workers (int): Number of worker processes to spawn.
+        """
+        self.workers: int = workers
+        # Use multiprocessing queue for cross-process communication
+        self.queue: mp.Queue[Optional[Dict[str, Any]]] = mp.Queue()
+
+    def _worker(self) -> None:
+        """
+        Internal worker loop that consumes tasks from the queue.
+        """
         while True:
-            task = self.queue.get()
+            task: Optional[Dict[str, Any]] = self.queue.get()
             if task is None:
                 break
             run_research_task(task)
 
-    def run(self, tasks: list[dict]):
-        processes = []
+    def run(self, tasks: List[Dict[str, Any]]) -> None:
+        """
+        Distribute tasks across the worker pool and wait for completion.
+
+        Args:
+            tasks (List[Dict[str, Any]]): List of task configurations.
+        """
+        processes: List[mp.Process] = []
 
         for _ in range(self.workers):
             p = mp.Process(target=self._worker)
@@ -30,6 +52,7 @@ class WorkerPool:
         for t in tasks:
             self.queue.put(t)
 
+        # Poison pill to stop workers
         for _ in processes:
             self.queue.put(None)
 

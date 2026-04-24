@@ -1,42 +1,66 @@
+"""
+Validation and evaluation layer for benchmark datasets.
+
+This module provides the Evaluator class to validate benchmark task payload
+contracts and to compute final execution scores.
+
+Example:
+    >>> evaluator = Evaluator(strict=True)
+    >>> res = evaluator.evaluate({"version": "v3", "tests": {"path": "/"}}, {"success": True})
+"""
+
 from __future__ import annotations
 
-import json
-from pathlib import Path
-from typing import Any, Dict, Tuple, List
+from typing import Any, Dict, List, Optional
 
 
 # =========================================================
-# COMPATIBILITY LAYER (CRITICAL FIX)
+# COMPATIBILITY LAYER
 # =========================================================
 
-def get_tests_path(task: Dict[str, Any]):
+def get_tests_path(task: Dict[str, Any]) -> Optional[str]:
     """
-    Supports:
-    - v3: {"tests": {"path": "..."}}
-    - legacy: {"tests": "..."} (string)
+    Extract the tests path from the task configuration.
+
+    Supports the v3 dictionary format: {"tests": {"path": "..."}}.
+    Legacy string formats are rejected in strict validation.
+
+    Args:
+        task (Dict[str, Any]): The benchmark task dictionary.
+
+    Returns:
+        Optional[str]: The extracted path or None if not found or invalid.
     """
-    tests = task.get("tests", {})
+    tests: Any = task.get("tests", {})
 
     if isinstance(tests, str):
         # legacy format not supported in strict mode
         return None
 
     if isinstance(tests, dict):
-        return tests.get("path")
+        result: Optional[str] = tests.get("path")
+        return result
 
     return None
 
 
-def get_entrypoint(task: Dict[str, Any]):
+def get_entrypoint(task: Dict[str, Any]) -> Optional[str]:
     """
-    Execution command for sandbox runner.
+    Extract the execution command for the sandbox runner.
+
+    Args:
+        task (Dict[str, Any]): The benchmark task dictionary.
+
+    Returns:
+        Optional[str]: The execution entrypoint command or None if missing.
     """
-    exec_block = task.get("execution", {})
+    exec_block: Any = task.get("execution", {})
 
     if not isinstance(exec_block, dict):
         return None
 
-    return exec_block.get("entrypoint")
+    result: Optional[str] = exec_block.get("entrypoint")
+    return result
 
 
 # =========================================================
@@ -44,18 +68,39 @@ def get_entrypoint(task: Dict[str, Any]):
 # =========================================================
 
 class Evaluator:
+    """
+    Validates task schemas and computes scores based on benchmark results.
 
-    def __init__(self, strict: bool = True):
-        self.strict = strict
+    Attributes:
+        strict (bool): Whether to enforce strict task schema validation.
+    """
+
+    def __init__(self, strict: bool = True) -> None:
+        """
+        Initialize the evaluator.
+
+        Args:
+            strict (bool): Enable strict schema enforcement.
+        """
+        self.strict: bool = strict
 
     # -----------------------------------------------------
     # MAIN ENTRY
     # -----------------------------------------------------
 
     def evaluate(self, task: Dict[str, Any], result: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Validate task requirements and compute the final score.
 
-        errors = []
-        warnings = []
+        Args:
+            task (Dict[str, Any]): The configuration of the executed task.
+            result (Dict[str, Any]): The output from the benchmark runner.
+
+        Returns:
+            Dict[str, Any]: A dictionary containing status, errors, warnings, and the score.
+        """
+        errors: List[str] = []
+        warnings: List[str] = []
 
         # -----------------------------
         # REQUIRED FIELD VALIDATION
@@ -71,8 +116,8 @@ class Evaluator:
         # SWE-BENCH EXECUTION CONTRACT
         # -----------------------------
 
-        tests_path = get_tests_path(task)
-        entrypoint = get_entrypoint(task)
+        tests_path: Optional[str] = get_tests_path(task)
+        entrypoint: Optional[str] = get_entrypoint(task)
 
         if not tests_path:
             errors.append("tests.path missing")
@@ -96,7 +141,7 @@ class Evaluator:
         # SCORE COMPUTATION (SAFE DEFAULT)
         # -----------------------------
 
-        score = self._compute_score(task, result)
+        score: float = self._compute_score(task, result)
 
         return {
             "status": "ok",
@@ -106,11 +151,20 @@ class Evaluator:
         }
 
     # -----------------------------------------------------
-    # SCORING LOGIC (PLACEHOLDER SAFE DEFAULT)
+    # SCORING LOGIC
     # -----------------------------------------------------
 
     def _compute_score(self, task: Dict[str, Any], result: Dict[str, Any]) -> float:
+        """
+        Compute a safe default score based on execution success.
 
+        Args:
+            task (Dict[str, Any]): The task context.
+            result (Dict[str, Any]): The execution payload.
+
+        Returns:
+            float: 1.0 if successful, 0.0 otherwise.
+        """
         # if execution failed entirely
         if not result:
             return 0.0
@@ -127,7 +181,7 @@ class Evaluator:
 
 if __name__ == "__main__":
 
-    sample_task = {
+    sample_task: Dict[str, Any] = {
         "id": "demo",
         "public_prompt": "test",
         "version": "v3",
@@ -135,7 +189,7 @@ if __name__ == "__main__":
         "execution": {"entrypoint": "pytest -q"}
     }
 
-    sample_result = {"success": True}
+    sample_result: Dict[str, Any] = {"success": True}
 
     ev = Evaluator(strict=True)
     print(ev.evaluate(sample_task, sample_result))

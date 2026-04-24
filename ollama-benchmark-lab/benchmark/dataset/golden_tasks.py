@@ -1,14 +1,21 @@
+"""
+Golden tasks for regression testing.
+
+This module provides a suite of deterministic tasks used to detect
+drift in the evaluation logic.
+"""
+
 from __future__ import annotations
 
 from typing import Dict, Any, List
 
-
 def load_golden_tasks() -> List[Dict[str, Any]]:
     """
-    Deterministic regression test suite.
-    Used to detect evaluator drift.
-    """
+    Return a list of deterministic tasks for regression testing.
 
+    Returns:
+        List[Dict[str, Any]]: A list of golden task configurations.
+    """
     return [
         {
             "id": "golden_addition",
