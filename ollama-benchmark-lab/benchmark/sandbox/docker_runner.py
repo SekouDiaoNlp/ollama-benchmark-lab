@@ -1,37 +1,50 @@
+# benchmark/sandbox/docker_runner.py
+
 import subprocess
-import uuid
+import tempfile
 from pathlib import Path
+from typing import Dict, Any
 
-IMAGE = "swe-sandbox:latest"
 
+def run_in_sandbox(task: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Minimal SWE-bench style execution sandbox.
 
-def run_in_container(repo_path: Path, command: str, timeout: int = 300):
-    container_id = f"swe_{uuid.uuid4().hex[:8]}"
+    Simulates:
+    - isolated repo execution
+    - pytest run
+    """
+
+    repo_path = Path(task.get("repo_path", "."))
+
+    test_path = task["tests"]["path"]
+
+    cmd = [
+        "pytest",
+        "-q",
+        test_path
+    ]
 
     try:
-        result = subprocess.run(
-            [
-                "docker", "run", "--rm",
-                "--name", container_id,
-                "-v", f"{repo_path}:/workspace",
-                IMAGE,
-                "bash", "-lc", command
-            ],
-            text=True,
+        proc = subprocess.run(
+            cmd,
+            cwd=repo_path,
             capture_output=True,
-            timeout=timeout
+            text=True,
+            timeout=120
         )
 
         return {
-            "status": "passed" if result.returncode == 0 else "failed",
-            "stdout": result.stdout,
-            "stderr": result.stderr,
-            "returncode": result.returncode
+            "status": "ok" if proc.returncode == 0 else "fail",
+            "stdout": proc.stdout,
+            "stderr": proc.stderr,
+            "passed": proc.returncode == 0,
         }
 
-    except subprocess.TimeoutExpired:
+    except Exception as e:
         return {
-            "status": "timeout",
+            "status": "error",
             "stdout": "",
-            "stderr": "Execution timed out"
+            "stderr": str(e),
+            "passed": False,
         }

@@ -1,15 +1,21 @@
 import ray
-from benchmark.runtime.executor import run_task_instance
+import os
+
+def init_ray():
+    os.environ["RAY_DISABLE_DASHBOARD"] = "1"
+    os.environ["RAY_USAGE_STATS_ENABLED"] = "0"
+
+    ray.init(
+        include_dashboard=False,
+        ignore_reinit_error=True,
+        logging_level="ERROR"
+    )
+
+def shutdown_ray():
+    ray.shutdown()
 
 
-ray.init(ignore_reinit_error=True)
-
-
-@ray.remote
-def _run(task):
-    return run_task_instance(task)
-
-
-def run_all(tasks: list[dict]):
-    futures = [_run.remote(t) for t in tasks]
-    return ray.get(futures)
+if __name__ == "__main__":
+    init_ray()
+    print("ray ok (headless mode)")
+    shutdown_ray()

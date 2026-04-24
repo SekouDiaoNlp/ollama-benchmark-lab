@@ -1,24 +1,55 @@
-from benchmark.runtime.repo_manager import get_repo
-from benchmark.runtime.patcher import apply_patch
-from benchmark.sandbox.docker_runner import run_in_container
+from pathlib import Path
+from benchmark.runtime.dataset_loader import DatasetLoader
 
 
-def run_task_instance(task: dict):
+ROOT = Path(__file__).resolve().parents[2]
+loader = DatasetLoader(ROOT)
+
+
+def run_task(task_id_or_obj):
     """
-    Core SWE-bench execution pipeline:
-    repo → patch → docker → pytest
+    SWE-bench execution entrypoint.
+
+    Supports:
+    - task_id (str)
+    - task dict (preloaded)
     """
 
-    repo = get_repo(
-        task["repo"],
-        task["base_commit"]
-    )
+    # -----------------------------------------
+    # CASE 1: ID STRING
+    # -----------------------------------------
+    if isinstance(task_id_or_obj, str):
+        task = loader.load_task(task_id_or_obj)
 
-    apply_patch(repo, task["patch"])
+    # -----------------------------------------
+    # CASE 2: DIRECT TASK OBJECT
+    # -----------------------------------------
+    elif isinstance(task_id_or_obj, dict):
+        task = task_id_or_obj
 
-    result = run_in_container(
-        repo_path=repo,
-        command="pytest -q"
-    )
+    else:
+        raise TypeError("task must be str or dict")
 
-    return result
+    # -----------------------------------------
+    # SAFE FIELD ACCESS (schema-compliant)
+    # -----------------------------------------
+    tests = task.get("tests", {})
+    execution = task.get("execution", {})
+
+    tests_path = None
+    entrypoint = None
+
+    if isinstance(tests, dict):
+        tests_path = tests.get("path")
+
+    if isinstance(execution, dict):
+        entrypoint = execution.get("entrypoint")
+
+    # -----------------------------------------
+    # DEBUG OUTPUT (temporary but safe)
+    # -----------------------------------------
+    return {
+        "tests_path": tests_path,
+        "entrypoint": entrypoint,
+        "status": "loaded"
+    }
