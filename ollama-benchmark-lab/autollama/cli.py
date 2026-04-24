@@ -1,5 +1,7 @@
 import argparse
+
 from benchmark.platform.api import BenchmarkPlatform
+from benchmark.dataset.swe_loader import SWEBenchLoader
 
 
 def main():
@@ -7,19 +9,18 @@ def main():
 
     parser.add_argument("command", choices=["run"])
     parser.add_argument("--limit", type=int, default=None)
-    parser.add_argument("--parallel", type=int, default=1)
     parser.add_argument("--model", type=str, default="default")
 
     args = parser.parse_args()
 
     if args.command == "run":
-        config = {
-            "model": args.model,
-            "limit": args.limit,
-            "parallel": args.parallel,
-        }
+        loader = SWEBenchLoader()
+        tasks = loader.load_all()
 
-        tasks = []  # placeholder until task loader is wired
+        if args.limit:
+            tasks = tasks[: args.limit]
+
+        config = {"model": args.model}
 
         platform = BenchmarkPlatform(config=config)
 

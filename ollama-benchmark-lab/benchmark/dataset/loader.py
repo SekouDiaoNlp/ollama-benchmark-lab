@@ -4,15 +4,30 @@ from pathlib import Path
 TASKS_DIR = Path("tasks")
 
 
-def load_task_by_id(task_id: str):
+class TaskLoader:
     """
-    Resolves task_id -> JSON task file
+    SWE-style dataset loader (batch + single-task support)
     """
 
-    for f in TASKS_DIR.rglob("*.json"):
-        data = json.loads(f.read_text())
+    def load_all(self) -> list[dict]:
+        tasks = []
 
-        if data.get("id") == task_id or f.stem == task_id:
-            return data
+        for f in TASKS_DIR.rglob("*.json"):
+            try:
+                data = json.loads(f.read_text())
+                data["task_id"] = data.get("id") or f.stem
+                tasks.append(data)
+            except Exception as e:
+                print(f"[TaskLoader] skip {f}: {e}")
 
-    raise FileNotFoundError(f"Task not found: {task_id}")
+        return tasks
+
+    def load_by_id(self, task_id: str):
+        for f in TASKS_DIR.rglob("*.json"):
+            data = json.loads(f.read_text())
+
+            if data.get("id") == task_id or f.stem == task_id:
+                data["task_id"] = task_id
+                return data
+
+        raise FileNotFoundError(f"Task not found: {task_id}")

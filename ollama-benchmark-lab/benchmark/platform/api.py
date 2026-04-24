@@ -3,6 +3,7 @@ from benchmark.experiments.tracker import ExperimentTracker
 from benchmark.leaderboard.engine import Leaderboard
 from benchmark.registry.run_registry import RunRegistry
 from benchmark.sandbox.docker_runner import DockerRunner
+from benchmark.sandbox.docker_runner_v2 import DockerRunnerV2
 
 
 class BenchmarkPlatform:
@@ -21,7 +22,7 @@ class BenchmarkPlatform:
     def run_experiment(self, config: dict, tasks: list[dict]):
         run_id = self.tracker.start_run(config)
 
-        docker = DockerRunner()
+        docker = DockerRunnerV2()
         results = []
 
         for task in tasks:
