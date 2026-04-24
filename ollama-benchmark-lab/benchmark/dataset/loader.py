@@ -1,15 +1,18 @@
 import json
 from pathlib import Path
 
-class SWEBenchDataset:
-    def __init__(self, path="tasks"):
-        self.path = Path(path)
+TASKS_DIR = Path("tasks")
 
-    def load(self):
-        tasks = []
-        for f in self.path.rglob("task.json"):
-            with open(f) as fp:
-                data = json.load(fp)
-                data["__path"] = str(f.parent)
-                tasks.append(data)
-        return tasks
+
+def load_task_by_id(task_id: str):
+    """
+    Resolves task_id -> JSON task file
+    """
+
+    for f in TASKS_DIR.rglob("*.json"):
+        data = json.loads(f.read_text())
+
+        if data.get("id") == task_id or f.stem == task_id:
+            return data
+
+    raise FileNotFoundError(f"Task not found: {task_id}")
