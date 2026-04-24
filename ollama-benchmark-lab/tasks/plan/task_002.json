@@ -16,5 +16,11 @@
   "hash": "auto",
   "golden": true,
   "expected": "placeholder_expected_output",
-  "score_expectation": 0.5
+  "score_expectation": 0.5,
+  "tests": {
+    "path": "tests/test_solution.py"
+  },
+  "execution": {
+    "entrypoint": "pytest -q"
+  }
 }

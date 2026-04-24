@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "SWE-Bench Task Schema v3 (Execution-First)",
+  "title": "SWE-Bench Task Schema v3 (Strict Execution + Replay Compatible)",
   "type": "object",
 
   "required": [
@@ -8,63 +8,51 @@
     "mode",
     "public_prompt",
     "version",
+    "tests",
     "execution"
   ],
 
   "properties": {
-
     "id": {
-      "type": "string"
+      "type": "string",
+      "description": "Unique task identifier"
     },
 
     "mode": {
       "type": "string",
-      "enum": ["ACT", "PLAN", "SWE"]
+      "enum": ["ACT", "PLAN", "SWE"],
+      "description": "Task execution mode"
     },
 
     "public_prompt": {
-      "type": "string"
+      "type": "string",
+      "description": "User-visible prompt used by the evaluator"
     },
 
     "version": {
-      "type": "string"
-    },
-
-    "execution": {
-      "type": "object",
-      "required": ["type", "entrypoint"],
-
-      "properties": {
-
-        "type": {
-          "type": "string",
-          "enum": ["pytest", "python", "docker_cmd"]
-        },
-
-        "entrypoint": {
-          "type": "string",
-          "description": "Path to tests or execution script inside sandbox"
-        },
-
-        "timeout_sec": {
-          "type": "integer",
-          "default": 60
-        }
-      }
+      "type": "string",
+      "description": "Task schema version for reproducibility"
     },
 
     "tests": {
       "type": "object",
+      "required": ["path"],
       "properties": {
-
         "path": {
           "type": "string",
-          "description": "pytest directory inside sandbox"
-        },
+          "description": "Filesystem path to hidden pytest suite (Docker-mounted or repo-relative)"
+        }
+      },
+      "additionalProperties": false
+    },
 
-        "hidden": {
-          "type": "boolean",
-          "default": true
+    "execution": {
+      "type": "object",
+      "required": ["entrypoint"],
+      "properties": {
+        "entrypoint": {
+          "type": "string",
+          "description": "Command executed inside sandbox (e.g. pytest -q, python -m module, etc.)"
         }
       },
       "additionalProperties": false
@@ -72,19 +60,13 @@
 
     "constraints": {
       "type": "object",
-      "properties": {
-        "max_runtime_sec": { "type": "integer" },
-        "max_memory_mb": { "type": "integer" }
-      }
-    },
-
-    "solution": {
-      "type": "string",
-      "description": "Used only in evaluation sandbox execution"
+      "description": "Optional runtime constraints (timeouts, memory limits, sandbox flags)",
+      "additionalProperties": true
     },
 
     "rubric": {
       "type": "object",
+      "description": "Scoring weights used by evaluator",
       "properties": {
         "correctness": { "type": "number" },
         "structure": { "type": "number" },

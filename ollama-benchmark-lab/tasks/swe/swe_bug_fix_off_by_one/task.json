@@ -6,5 +6,11 @@
   "constraints": {
     "min_lines": 5,
     "max_lines": 40
+  },
+  "tests": {
+    "path": "tests/test_solution.py"
+  },
+  "execution": {
+    "entrypoint": "pytest -q"
   }
 }

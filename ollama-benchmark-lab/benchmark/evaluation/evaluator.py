@@ -1,196 +1,141 @@
-"""
-SWE-Bench Style Evaluator (Docker + Pytest + Rubric Scoring)
-Updated for task schema v2
-
-Key changes:
-- task["tests"]["path"] supported
-- task["execution"]["entrypoint"] supported
-- fallback compatibility with legacy fields
-- docker sandbox execution
-- pytest-based scoring
-"""
-
 from __future__ import annotations
 
 import json
-import subprocess
-import tempfile
-import time
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Any, Tuple
+from typing import Any, Dict, Tuple, List
 
 
-# -----------------------------
-# Config
-# -----------------------------
+# =========================================================
+# COMPATIBILITY LAYER (CRITICAL FIX)
+# =========================================================
 
-DOCKER_IMAGE = "swe-sandbox:latest"
-DEFAULT_TIMEOUT = 30
-
-
-# -----------------------------
-# Utilities
-# -----------------------------
-
-
-def _run(cmd: list[str], timeout: int = DEFAULT_TIMEOUT) -> Tuple[int, str, str]:
-    """Run local subprocess (fallback mode)."""
-    try:
-        p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
-        return p.returncode, p.stdout, p.stderr
-    except subprocess.TimeoutExpired:
-        return 124, "", "TIMEOUT"
-
-
-# -----------------------------
-# Docker Sandbox Runner
-# -----------------------------
-
-
-def run_in_docker(workdir: Path, cmd: list[str], timeout: int = DEFAULT_TIMEOUT) -> Tuple[int, str, str]:
+def get_tests_path(task: Dict[str, Any]):
     """
-    Execute command inside Docker sandbox.
+    Supports:
+    - v3: {"tests": {"path": "..."}}
+    - legacy: {"tests": "..."} (string)
     """
-    abs_path = str(workdir.resolve())
+    tests = task.get("tests", {})
 
-    docker_cmd = [
-        "docker", "run", "--rm",
-        "-v", f"{abs_path}:/workspace",
-        "-w", "/workspace",
-        DOCKER_IMAGE,
-        "bash", "-lc", " ".join(cmd)
-    ]
+    if isinstance(tests, str):
+        # legacy format not supported in strict mode
+        return None
 
-    return _run(docker_cmd, timeout=timeout)
+    if isinstance(tests, dict):
+        return tests.get("path")
 
-
-# -----------------------------
-# Task Loader
-# -----------------------------
+    return None
 
 
-def load_task(task: Dict[str, Any]) -> Dict[str, Any]:
+def get_entrypoint(task: Dict[str, Any]):
     """
-    Normalize task format (v2 + backward compatibility)
+    Execution command for sandbox runner.
     """
+    exec_block = task.get("execution", {})
 
-    execution = task.get("execution", {})
+    if not isinstance(exec_block, dict):
+        return None
 
-    task["_tests_path"] = (
-        task.get("tests", {}).get("path")
-        or task.get("tests")
-        or "tests"
-    )
-
-    task["_entrypoint"] = (
-        execution.get("entrypoint")
-        or task.get("entrypoint")
-        or "pytest"
-    )
-
-    return task
+    return exec_block.get("entrypoint")
 
 
-# -----------------------------
-# Pytest Execution
-# -----------------------------
+# =========================================================
+# VALIDATION CORE
+# =========================================================
+
+class Evaluator:
+
+    def __init__(self, strict: bool = True):
+        self.strict = strict
+
+    # -----------------------------------------------------
+    # MAIN ENTRY
+    # -----------------------------------------------------
+
+    def evaluate(self, task: Dict[str, Any], result: Dict[str, Any]) -> Dict[str, Any]:
+
+        errors = []
+        warnings = []
+
+        # -----------------------------
+        # REQUIRED FIELD VALIDATION
+        # -----------------------------
+
+        if not task.get("public_prompt"):
+            errors.append("missing_field:public_prompt")
+
+        if not task.get("version"):
+            errors.append("missing_field:version")
+
+        # -----------------------------
+        # SWE-BENCH EXECUTION CONTRACT
+        # -----------------------------
+
+        tests_path = get_tests_path(task)
+        entrypoint = get_entrypoint(task)
+
+        if not tests_path:
+            errors.append("tests.path missing")
+
+        if not entrypoint:
+            errors.append("execution.entrypoint missing")
+
+        # -----------------------------
+        # STRICT MODE BEHAVIOR
+        # -----------------------------
+
+        if self.strict and errors:
+            return {
+                "status": "invalid_task",
+                "errors": errors,
+                "warnings": warnings,
+                "score": 0.0
+            }
+
+        # -----------------------------
+        # SCORE COMPUTATION (SAFE DEFAULT)
+        # -----------------------------
+
+        score = self._compute_score(task, result)
+
+        return {
+            "status": "ok",
+            "errors": errors,
+            "warnings": warnings,
+            "score": score
+        }
+
+    # -----------------------------------------------------
+    # SCORING LOGIC (PLACEHOLDER SAFE DEFAULT)
+    # -----------------------------------------------------
+
+    def _compute_score(self, task: Dict[str, Any], result: Dict[str, Any]) -> float:
+
+        # if execution failed entirely
+        if not result:
+            return 0.0
+
+        if result.get("success") is True:
+            return 1.0
+
+        return 0.0
 
 
-def run_pytest(task_dir: Path, test_path: str) -> Tuple[bool, str]:
-    """
-    Run pytest inside sandbox.
-    """
-    cmd = ["pytest", test_path, "-q", "--disable-warnings"]
-
-    code, out, err = run_in_docker(task_dir, cmd)
-
-    success = code == 0
-    return success, out + "\n" + err
-
-
-# -----------------------------
-# Evaluation Core
-# -----------------------------
-
-
-def evaluate_task(task: Dict[str, Any], solution_path: Path) -> Dict[str, Any]:
-    """
-    Evaluate a single SWE task.
-    """
-
-    task = load_task(task)
-
-    task_id = task["id"]
-    test_path = task["_tests_path"]
-
-    task_dir = solution_path / task_id
-
-    start = time.time()
-
-    passed, logs = run_pytest(task_dir, test_path)
-
-    duration = time.time() - start
-
-    rubric = task.get("rubric", {})
-
-    score = 0.0
-
-    if passed:
-        score += rubric.get("correctness", 1.0)
-    else:
-        score += 0.0
-
-    # lightweight heuristics
-    if "edge" in logs.lower():
-        score += rubric.get("edge_cases", 0.0) * 0.5
-
-    return {
-        "task_id": task_id,
-        "passed": passed,
-        "score": min(score, 1.0),
-        "duration": duration,
-        "logs": logs[-2000:],
-    }
-
-
-# -----------------------------
-# Batch Evaluation
-# -----------------------------
-
-
-def evaluate_all(tasks: list[Dict[str, Any]], solutions_dir: str) -> Dict[str, Any]:
-    results = []
-
-    for task in tasks:
-        res = evaluate_task(task, Path(solutions_dir))
-        results.append(res)
-
-    avg_score = sum(r["score"] for r in results) / len(results)
-
-    return {
-        "results": results,
-        "avg_score": avg_score,
-        "count": len(results),
-    }
-
-
-# -----------------------------
-# CLI
-# -----------------------------
-
+# =========================================================
+# OPTIONAL CLI TEST ENTRY
+# =========================================================
 
 if __name__ == "__main__":
-    import argparse
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--tasks", required=True)
-    parser.add_argument("--solutions", required=True)
+    sample_task = {
+        "id": "demo",
+        "public_prompt": "test",
+        "version": "v3",
+        "tests": {"path": "tests/"},
+        "execution": {"entrypoint": "pytest -q"}
+    }
 
-    args = parser.parse_args()
+    sample_result = {"success": True}
 
-    tasks = json.load(open(args.tasks))
-
-    report = evaluate_all(tasks, args.solutions)
-
-    print(json.dumps(report, indent=2))
+    ev = Evaluator(strict=True)
+    print(ev.evaluate(sample_task, sample_result))

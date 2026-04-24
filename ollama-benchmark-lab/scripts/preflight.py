@@ -45,14 +45,14 @@ def load_config():
 def ensure_dir(path: Path, auto_repair: bool):
     if not path.exists():
         if auto_repair:
-            print(f"⚠ {path} missing → creating")
+            print(f"? {path} missing -> creating")
             path.mkdir(parents=True, exist_ok=True)
-            print(f"✔ {path} created")
+            print(f"? {path} created")
             return True
         else:
-            print(f"✖ Missing directory: {path}")
+            print(f"? Missing directory: {path}")
             return False
-    print(f"✔ Found: {path}")
+    print(f"? Found: {path}")
     return True
 
 
@@ -64,14 +64,17 @@ def check_ollama():
     try:
         out = subprocess.check_output(["ollama", "list"], text=True)
         lines = [l for l in out.splitlines() if l.strip()]
-        count = len(lines) - 1  # skip header
+        count = len(lines) - 1
+
         if count <= 0:
-            print("✖ No models detected in ollama")
+            print("? No models detected in ollama")
             return False
-        print(f"✔ Ollama OK ({count} models detected)")
+
+        print(f"? Ollama OK ({count} models detected)")
         return True
+
     except Exception as e:
-        print(f"✖ Ollama not reachable: {e}")
+        print(f"? Ollama not reachable: {e}")
         return False
 
 
@@ -82,10 +85,10 @@ def check_writable():
         test = results / ".write_test"
         test.write_text("ok")
         test.unlink()
-        print("✔ Disk writable (results/)")
+        print("? Disk writable (results/)")
         return True
     except Exception as e:
-        print(f"✖ Write failure: {e}")
+        print(f"? Write failure: {e}")
         return False
 
 
@@ -106,7 +109,12 @@ def validate_tasks(auto_repair: bool):
     errors = {}
 
     for f in files:
-        result = validator.validate_file(f)
+        try:
+            result = validator.validate_file(f)
+        except Exception as e:
+            print(f"? VALIDATOR CRASH: {f} -> {e}")
+            invalid += 1
+            continue
 
         if result["valid"]:
             valid += 1
@@ -114,13 +122,13 @@ def validate_tasks(auto_repair: bool):
             invalid += 1
             errors[f.stem] = result["errors"]
 
-    print("\n📦 SCHEMA VALIDATION")
-    print(f"✔ Total: {total}")
-    print(f"✔ Valid: {valid}")
-    print(f"✖ Invalid: {invalid}")
+    print("\n? SCHEMA VALIDATION")
+    print(f"? Total: {total}")
+    print(f"? Valid: {valid}")
+    print(f"? Invalid: {invalid}")
 
     if errors:
-        print("\n❌ STRUCTURED ERRORS:")
+        print("\n? STRUCTURED ERRORS:")
         for k, v in list(errors.items())[:10]:
             print(f" - {k}: {v}")
 
@@ -142,8 +150,8 @@ def check_golden_tasks():
         if data.get("golden"):
             golden += 1
 
-    print("\n🧪 GOLDEN TEST SUITE")
-    print(f"✔ Golden tasks: {golden}")
+    print("\n? GOLDEN TEST SUITE")
+    print(f"? Golden tasks: {golden}")
 
     return golden
 
@@ -165,10 +173,6 @@ def main():
 
     ok = True
 
-    # -----------------------------------------------------
-    # STRUCTURE
-    # -----------------------------------------------------
-
     ok &= ensure_dir(ROOT / "benchmark", auto_repair)
     ok &= ensure_dir(ROOT / "analysis", auto_repair)
     ok &= ensure_dir(ROOT / "dashboard", auto_repair)
@@ -176,45 +180,29 @@ def main():
     ok &= ensure_dir(ROOT / "tasks/act", auto_repair)
     ok &= ensure_dir(ROOT / "tasks/swe", auto_repair)
 
-    # -----------------------------------------------------
-    # TASK VALIDATION
-    # -----------------------------------------------------
-
     total, valid, invalid = validate_tasks(auto_repair)
 
     if fail_fast and invalid > 0:
-        print("\n❌ STRICT MODE ENABLED → INVALID TASKS BLOCK EXECUTION")
+        print("\n? STRICT MODE ENABLED -> INVALID TASKS BLOCK EXECUTION")
         sys.exit(1)
-
-    # -----------------------------------------------------
-    # SYSTEM CHECKS
-    # -----------------------------------------------------
 
     ok &= check_writable()
     ok &= check_ollama()
 
-    # -----------------------------------------------------
-    # GOLDEN TASKS
-    # -----------------------------------------------------
-
     golden = check_golden_tasks()
 
-    # -----------------------------------------------------
-    # FINAL STATUS
-    # -----------------------------------------------------
-
     print("\n==============================")
-    print("📊 SYSTEM VALIDATION COMPLETE")
+    print("? SYSTEM VALIDATION COMPLETE")
     print(f"Tasks:  {total}")
     print(f"Valid:  {valid}")
     print(f"Golden: {golden}")
     print("==============================")
 
     if ok:
-        print("🚀 READY FOR BENCHMARK")
+        print("? READY FOR BENCHMARK")
         sys.exit(0)
     else:
-        print("❌ SYSTEM NOT READY")
+        print("? SYSTEM NOT READY")
         sys.exit(1)
 
 

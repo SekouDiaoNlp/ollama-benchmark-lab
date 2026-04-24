@@ -1,117 +1,98 @@
-from __future__ import annotations
-
 import json
-import hashlib
 from pathlib import Path
-from typing import Dict, Any, List
-
-
-REQUIRED_FIELDS = [
-    "id",
-    "mode",
-    "public_prompt",
-    "version"
-]
 
 
 class SchemaValidator:
+    """
+    Dict-based validator (SWE-bench v2 compatible).
+    NO file-path coupling inside validation logic.
+    """
 
-    def __init__(self, auto_repair: bool = True):
+    def __init__(self, auto_repair: bool = False):
         self.auto_repair = auto_repair
 
-    # =====================================================
-    # PUBLIC API
-    # =====================================================
+    # =========================================================
+    # PUBLIC API (NEW STANDARD)
+    # =========================================================
 
-    def validate_file(self, path: Path) -> Dict[str, Any]:
-        try:
-            data = json.loads(path.read_text())
-        except Exception as e:
-            return {
-                "valid": False,
-                "errors": [f"invalid_json:{e}"]
-            }
+    def validate_task(self, task: dict):
+        """
+        Validate a task dictionary directly.
+        """
 
-        errors = self._validate_fields(data)
+        errors = []
 
-        repaired = False
+        # -------------------------
+        # REQUIRED TOP-LEVEL FIELDS
+        # -------------------------
+        for key in ["id", "mode", "public_prompt", "version"]:
+            if key not in task or task[key] in (None, ""):
+                errors.append(f"missing:{key}")
 
-        if errors and self.auto_repair:
-            repaired = self._auto_repair(data)
+        # -------------------------
+        # MODE CHECK
+        # -------------------------
+        if task.get("mode") not in {"ACT", "PLAN", "SWE"}:
+            errors.append("invalid:mode")
 
-            if repaired:
-                # re-validate after repair
-                errors = self._validate_fields(data)
+        # -------------------------
+        # TESTS (NEW SCHEMA FORMAT)
+        # -------------------------
+        tests = task.get("tests", {})
 
-                if not errors:
-                    path.write_text(json.dumps(data, indent=2))
+        if isinstance(tests, str):
+            errors.append("tests must be object with path")
+
+        elif isinstance(tests, dict):
+            if not tests.get("path"):
+                errors.append("tests.path missing")
+
+        else:
+            errors.append("tests invalid type")
+
+        # -------------------------
+        # EXECUTION BLOCK
+        # -------------------------
+        execution = task.get("execution", {})
+
+        if not isinstance(execution, dict):
+            errors.append("execution invalid type")
+        else:
+            if not execution.get("entrypoint"):
+                errors.append("execution.entrypoint missing")
+
+        # -------------------------
+        # RUBRIC (OPTIONAL)
+        # -------------------------
+        rubric = task.get("rubric", {})
+        if rubric and isinstance(rubric, dict):
+            allowed = {"correctness", "structure", "edge_cases", "efficiency"}
+            for k in rubric:
+                if k not in allowed:
+                    errors.append(f"rubric.invalid:{k}")
 
         return {
             "valid": len(errors) == 0,
-            "errors": errors,
-            "repaired": repaired
+            "errors": errors
         }
 
-    # =====================================================
-    # VALIDATION
-    # =====================================================
+    # =========================================================
+    # BACKWARD COMPATIBILITY LAYER (OPTION A FIX)
+    # =========================================================
 
-    def _validate_fields(self, data: Dict[str, Any]) -> List[str]:
-        errors = []
+    def validate_file(self, path):
+        """
+        Legacy compatibility:
+        - accepts file path OR dict
+        - prevents pipeline breakage
+        """
 
-        for field in REQUIRED_FIELDS:
-            if field not in data:
-                errors.append(f"missing_field:{field}")
+        # If already dict → validate directly
+        if isinstance(path, dict):
+            return self.validate_task(path)
 
-        # validate mode
-        if "mode" in data:
-            if data["mode"] not in ["PLAN", "ACT", "SWE"]:
-                errors.append("invalid_mode")
+        # Otherwise treat as file path
+        p = Path(path)
+        task = json.loads(p.read_text())
 
-        return errors
-
-    # =====================================================
-    # AUTO REPAIR
-    # =====================================================
-
-    def _auto_repair(self, data: Dict[str, Any]) -> bool:
-        changed = False
-
-        # migrate prompt → public_prompt
-        if "public_prompt" not in data:
-            if "prompt" in data:
-                data["public_prompt"] = data["prompt"]
-                changed = True
-
-        # default version
-        if "version" not in data:
-            data["version"] = "1.0"
-            changed = True
-
-        # generate id if missing
-        if "id" not in data:
-            data["id"] = self._generate_id(data)
-            changed = True
-
-        # normalize mode
-        if "mode" in data:
-            data["mode"] = data["mode"].upper()
-
-        # add hash (for dataset versioning)
-        if "hash" not in data:
-            data["hash"] = self._compute_hash(data)
-            changed = True
-
-        return changed
-
-    # =====================================================
-    # HELPERS
-    # =====================================================
-
-    def _generate_id(self, data: Dict[str, Any]) -> str:
-        base = data.get("public_prompt", "")[:30]
-        return base.replace(" ", "_").lower()
-
-    def _compute_hash(self, data: Dict[str, Any]) -> str:
-        payload = json.dumps(data, sort_keys=True).encode()
-        return hashlib.sha256(payload).hexdigest()
+        return self.validate_task(task)
