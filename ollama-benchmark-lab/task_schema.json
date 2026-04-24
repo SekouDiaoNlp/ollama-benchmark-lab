@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SWE-Bench Task Schema v3",
+  "type": "object",
+  "required": [
+    "id",
+    "mode",
+    "public_prompt",
+    "repo",
+    "base_commit",
+    "patch",
+    "execution",
+    "tests",
+    "version"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "ACT",
+        "PLAN",
+        "SWE"
+      ]
+    },
+    "public_prompt": {
+      "type": "string"
+    },
+    "repo": {
+      "type": "string"
+    },
+    "base_commit": {
+      "type": "string"
+    },
+    "patch": {
+      "type": "string"
+    },
+    "tests": {
+      "type": "object",
+      "required": [
+        "path"
+      ],
+      "properties": {
+        "path": {
+          "type": "string"
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "required": [
+        "entrypoint"
+      ],
+      "properties": {
+        "entrypoint": {
+          "type": "string"
+        }
+      }
+    },
+    "constraints": {
+      "type": "object"
+    },
+    "rubric": {
+      "type": "object",
+      "properties": {
+        "correctness": {
+          "type": "number"
+        },
+        "structure": {
+          "type": "number"
+        },
+        "edge_cases": {
+          "type": "number"
+        },
+        "efficiency": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "version": {
+      "type": "string"
+    }
+  }
+}

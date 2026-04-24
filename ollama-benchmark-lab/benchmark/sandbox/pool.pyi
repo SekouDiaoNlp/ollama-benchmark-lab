@@ -1,0 +1,19 @@
+from _typeshed import Incomplete
+
+IMAGE: str
+WORKDIR: str
+
+class SandboxInstance:
+    client: Incomplete
+    container: Incomplete
+    busy: bool
+    def __init__(self, client, container) -> None: ...
+    def exec(self, cmd, timeout: int = 30): ...
+
+class SandboxPool:
+    client: Incomplete
+    pool: Incomplete
+    def __init__(self, size: int = 4) -> None: ...
+    def acquire(self, timeout=None) -> SandboxInstance: ...
+    def release(self, instance: SandboxInstance): ...
+    def close(self) -> None: ...

@@ -1,0 +1,3 @@
+from pathlib import Path
+
+def extract_repo_context(repo_path: Path, max_files: int = 5) -> str: ...

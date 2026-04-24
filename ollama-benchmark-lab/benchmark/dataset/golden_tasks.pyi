@@ -1,0 +1,3 @@
+from typing import Any
+
+def load_golden_tasks() -> list[dict[str, Any]]: ...

@@ -1,0 +1,16 @@
+from _typeshed import Incomplete
+from benchmark.analytics.failure_clustering import FailureClusterer as FailureClusterer
+from benchmark.analytics.model_compare import ModelComparator as ModelComparator
+from benchmark.analytics.normalizer import ResultNormalizer as ResultNormalizer
+from benchmark.analytics.regression_tracker import RegressionTracker as RegressionTracker
+
+class BenchmarkAnalytics:
+    normalizer: Incomplete
+    regression: Incomplete
+    comparator: Incomplete
+    clusterer: Incomplete
+    def __init__(self) -> None: ...
+    def process_run(self, model_name: str, task_id: str, result: dict): ...
+    def analyze_model(self, model_name: str): ...
+    def compare_models(self, a, b): ...
+    def failure_analysis(self, results): ...

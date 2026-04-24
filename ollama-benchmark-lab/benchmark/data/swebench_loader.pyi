@@ -1,0 +1,6 @@
+from _typeshed import Incomplete
+
+class SWEBenchLoader:
+    dataset_path: Incomplete
+    def __init__(self, dataset_path: str) -> None: ...
+    def load_all(self): ...

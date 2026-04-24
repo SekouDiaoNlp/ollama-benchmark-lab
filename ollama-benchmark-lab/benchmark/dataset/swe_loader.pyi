@@ -1,0 +1,6 @@
+from _typeshed import Incomplete
+
+class SWEBenchLoader:
+    root: Incomplete
+    def __init__(self, root: str = 'tasks') -> None: ...
+    def load_all(self) -> list[dict]: ...

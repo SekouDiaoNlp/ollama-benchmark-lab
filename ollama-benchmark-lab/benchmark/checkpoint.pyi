@@ -1,0 +1,9 @@
+from _typeshed import Incomplete
+from pathlib import Path
+
+class CheckpointManager:
+    path: Incomplete
+    state: Incomplete
+    def __init__(self, path: Path | str) -> None: ...
+    def save(self, key: str, value: dict): ...
+    def done(self, key: str) -> bool: ...

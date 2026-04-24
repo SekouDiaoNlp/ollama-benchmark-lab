@@ -1,0 +1,9 @@
+include LICENSE
+include README.md
+include pyproject.toml
+recursive-include docs *
+recursive-exclude docs/build *
+recursive-include benchmark *.pyi
+recursive-include autollama *.pyi
+global-exclude *.pyc
+global-exclude __pycache__
