@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SWE-Bench Task Schema v3 (Execution-First)",
+  "type": "object",
+
+  "required": [
+    "id",
+    "mode",
+    "public_prompt",
+    "version",
+    "execution"
+  ],
+
+  "properties": {
+
+    "id": {
+      "type": "string"
+    },
+
+    "mode": {
+      "type": "string",
+      "enum": ["ACT", "PLAN", "SWE"]
+    },
+
+    "public_prompt": {
+      "type": "string"
+    },
+
+    "version": {
+      "type": "string"
+    },
+
+    "execution": {
+      "type": "object",
+      "required": ["type", "entrypoint"],
+
+      "properties": {
+
+        "type": {
+          "type": "string",
+          "enum": ["pytest", "python", "docker_cmd"]
+        },
+
+        "entrypoint": {
+          "type": "string",
+          "description": "Path to tests or execution script inside sandbox"
+        },
+
+        "timeout_sec": {
+          "type": "integer",
+          "default": 60
+        }
+      }
+    },
+
+    "tests": {
+      "type": "object",
+      "properties": {
+
+        "path": {
+          "type": "string",
+          "description": "pytest directory inside sandbox"
+        },
+
+        "hidden": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "max_runtime_sec": { "type": "integer" },
+        "max_memory_mb": { "type": "integer" }
+      }
+    },
+
+    "solution": {
+      "type": "string",
+      "description": "Used only in evaluation sandbox execution"
+    },
+
+    "rubric": {
+      "type": "object",
+      "properties": {
+        "correctness": { "type": "number" },
+        "structure": { "type": "number" },
+        "edge_cases": { "type": "number" },
+        "efficiency": { "type": "number" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

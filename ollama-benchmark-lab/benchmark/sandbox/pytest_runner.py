@@ -1,29 +1,25 @@
-from __future__ import annotations
-
-from typing import Dict, Any
-from benchmark.sandbox.docker_executor import DockerExecutor
+import tempfile
+from pathlib import Path
 
 
-class PytestRunner:
+def run_pytest(sandbox, task_path: str):
     """
-    Runs hidden SWE-bench tests using Docker + pytest.
+    Executes hidden tests inside sandbox.
     """
 
-    def __init__(self):
-        self.executor = DockerExecutor()
+    cmd = [
+        "pytest",
+        task_path,
+        "-q",
+        "--disable-warnings",
+        "--maxfail=1"
+    ]
 
-    def evaluate(self, code: str, tests: str) -> Dict[str, Any]:
+    result = sandbox.exec(cmd, timeout=60)
 
-        result = self.executor.run(
-            code=code,
-            tests=tests,
-            timeout=8
-        )
+    passed = "failed" not in result.lower()
 
-        passed = result["returncode"] == 0 and not result["timeout"]
-
-        return {
-            "passed": passed,
-            "stdout": result["stdout"],
-            "stderr": result["stderr"]
-        }
+    return {
+        "passed": passed,
+        "raw_output": result
+    }

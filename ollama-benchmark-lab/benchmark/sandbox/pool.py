@@ -1,128 +1,64 @@
-from __future__ import annotations
-
-import subprocess
-import uuid
+import docker
 import time
-from dataclasses import dataclass
-from typing import Dict, Optional
+import queue
+import threading
+from typing import Optional
+
+IMAGE = "swe-sandbox:latest"
+WORKDIR = "/workspace"
 
 
-@dataclass
-class Sandbox:
-    id: str
-    container_name: str
+class SandboxInstance:
+    def __init__(self, client, container):
+        self.client = client
+        self.container = container
+        self.busy = False
+
+    def exec(self, cmd, timeout=30):
+        self.busy = True
+        try:
+            exec_id = self.client.api.exec_create(
+                self.container.id,
+                cmd,
+                workdir=WORKDIR,
+                stdout=True,
+                stderr=True,
+            )
+
+            output = self.client.api.exec_start(exec_id, stream=False, timeout=timeout)
+            return output.decode("utf-8", errors="ignore")
+
+        finally:
+            self.busy = False
 
 
 class SandboxPool:
-    """
-    Persistent Docker sandbox pool.
+    def __init__(self, size=4):
+        self.client = docker.from_env()
+        self.pool = queue.Queue()
+        self._init_pool(size)
 
-    Keeps warm Python containers alive and reuses them
-    to avoid per-task container startup overhead.
-    """
-
-    def __init__(self, size: int = 4):
-        self.size = size
-        self.pool: list[Sandbox] = []
-        self.available: list[Sandbox] = []
-
-    # -----------------------------------------------------
-    # INIT POOL
-    # -----------------------------------------------------
-
-    def start(self):
-        for _ in range(self.size):
-            sandbox = self._create_container()
-            self.pool.append(sandbox)
-            self.available.append(sandbox)
-
-    def _create_container(self) -> Sandbox:
-        name = f"sandbox_{uuid.uuid4().hex[:8]}"
-
-        cmd = [
-            "docker", "run", "-d",
-            "--rm",
-            "--name", name,
-            "python:3.11-slim",
-            "sleep", "infinity"
-        ]
-
-        subprocess.check_call(cmd)
-
-        return Sandbox(id=name, container_name=name)
-
-    # -----------------------------------------------------
-    # ACQUIRE / RELEASE
-    # -----------------------------------------------------
-
-    def acquire(self) -> Sandbox:
-        while not self.available:
-            time.sleep(0.05)
-
-        return self.available.pop()
-
-    def release(self, sandbox: Sandbox):
-        self.available.append(sandbox)
-
-    # -----------------------------------------------------
-    # EXECUTION
-    # -----------------------------------------------------
-
-    def run(self, sandbox: Sandbox, code: str, test_cmd: str, timeout: int = 60) -> dict:
-        """
-        Executes code inside persistent container.
-        """
-
-        workdir = f"/tmp/run_{uuid.uuid4().hex}"
-
-        try:
-            # 1. create working directory
-            subprocess.check_call([
-                "docker", "exec", sandbox.container_name,
-                "mkdir", "-p", workdir
-            ])
-
-            # 2. write code
-            self._write_file(sandbox, f"{workdir}/solution.py", code)
-
-            # 3. run tests
-            result = subprocess.run(
-                [
-                    "docker", "exec",
-                    sandbox.container_name,
-                    "bash", "-c",
-                    f"cd {workdir} && pip install pytest -q && {test_cmd}"
-                ],
-                capture_output=True,
-                text=True,
-                timeout=timeout
+    def _init_pool(self, size):
+        for _ in range(size):
+            container = self.client.containers.run(
+                IMAGE,
+                command="sleep infinity",
+                detach=True,
+                tty=True,
+                remove=True,
             )
+            self.pool.put(SandboxInstance(self.client, container))
 
-            return {
-                "success": True,
-                "returncode": result.returncode,
-                "stdout": result.stdout,
-                "stderr": result.stderr,
-            }
+    def acquire(self, timeout=None) -> SandboxInstance:
+        return self.pool.get(timeout=timeout)
 
-        except subprocess.TimeoutExpired:
-            return {
-                "success": False,
-                "error": "timeout"
-            }
+    def release(self, instance: SandboxInstance):
+        self.pool.put(instance)
 
-    def _write_file(self, sandbox: Sandbox, path: str, content: str):
-        proc = subprocess.Popen(
-            ["docker", "exec", "-i", sandbox.container_name, "tee", path],
-            stdin=subprocess.PIPE,
-            text=True
-        )
-        proc.communicate(content)
-
-    # -----------------------------------------------------
-    # CLEANUP
-    # -----------------------------------------------------
-
-    def stop(self):
-        for s in self.pool:
-            subprocess.call(["docker", "stop", s.container_name])
+    def close(self):
+        while not self.pool.empty():
+            inst = self.pool.get()
+            try:
+                inst.container.kill()
+            except Exception:
+                pass
